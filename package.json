@@ -12,6 +12,7 @@
 		"url": "https://github.com/robertkeizer/rabbit-pipe.git"
 	},
 	"dependencies": {
+		"joi": "^13.0.0",
 		"linebyline": "^1.3.0"
 	},
 	"devDependencies": {

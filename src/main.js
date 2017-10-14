@@ -1,5 +1,3 @@
-const Main = function( ){
-	
-};
-
-module.exports = Main;
+module.exports = {
+	Producer: require( "./producer" )
+}

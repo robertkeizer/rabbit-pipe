@@ -1,4 +1,14 @@
 {
 	"name": "rabbit-pipe",
-	"version": "0.0.1"
+	"version": "0.0.1",
+	"description": "Collection of programs and scripts to interact with RabbitMQ through pipes.",
+	"keywords": "rabbit rabbitmq pipe stream queue unix linux command-line cli",
+	"main": "src/main.js",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/robertkeizer/rabbit-pipe.git"
+	},
+	"dependencies": {
+		"linebyline": "^1.3.0"
+	}
 }

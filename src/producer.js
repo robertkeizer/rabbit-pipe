@@ -17,6 +17,8 @@ const Producer = function( config ){
 	this._readyListenerExists = false;
 	this._setupListeners( );
 
+	this._running = false;
+
 	const self = this;
 	Joi.validate( config, validations.producerConfig, function( err, newConfig ){
 		if( err ){ throw err; }
@@ -62,6 +64,26 @@ Producer.prototype._setupListeners = function( ){
 		}
 	} );
 };
+
+// This is called if autoStart is true, right after the
+// readyToStart event is fired. It call also be called manually
+// for some reason if you have autoStart off.
+Producer.prototype.start = function( ){
 		
+	if( this._running ){
+		return this.emit.apply( this, producerEvents.startCalledWhenAlreadyRunning( ) );
+	}else{
+		this._running = true;
+	}
+
+	this.emit( producerEvents.startingUp( ) );
+
+
+	this.emit( producerEvents.running( ) );
+};
+
+Producer.prototype.die = function( ){
+	this.removeAllListeners( );
+};
 
 module.exports = Producer;

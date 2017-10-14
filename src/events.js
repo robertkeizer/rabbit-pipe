@@ -12,6 +12,18 @@ ProducerEvents.prototype.readyToStart = function( ){
 	return "readyToStart";
 };
 
+ProducerEvents.prototype.startCalledWhenAlreadyRunning = function( ){
+	return [ "error", "Start called when already Running" ];
+};
+
+ProducerEvents.prototype.startingUp = function( ){
+	return "startingUp";
+};
+
+ProducerEvents.prototype.running = function( ){
+	return "running";
+};
+
 module.exports = {
 	Producer: ProducerEvents
 }

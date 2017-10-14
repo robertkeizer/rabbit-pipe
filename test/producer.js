@@ -33,6 +33,24 @@ describe( "Producer", function( ){
 		const tasks = new Tasks( );
 		const p = new Main.Producer( tasks.validSpecProducerConfig( { waitForReadyListener: true } ) );
 		p.once( producerEvents.readyToStart( ), function( ){
+			p.die();
+			return cb( null );
+		} );
+	} );
+
+	it( "The producer emits a starting up event", function( cb ){
+		const tasks = new Tasks( );
+		const p = new Main.Producer( tasks.validSpecProducerConfig( {
+			waitForReadyListener: true,
+			autoStart: true
+		 } ) );
+
+		// While we don't care about this, it allows us to make sure that we
+		// have the starting up listener attached properly.
+		p.once( producerEvents.readyToStart(), function( ){ } );
+
+		p.once( producerEvents.startingUp( ), function( ){
+			p.die();
 			return cb( null );
 		} );
 	} );

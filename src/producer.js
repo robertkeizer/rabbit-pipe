@@ -100,7 +100,9 @@ Producer.prototype.start = function( ){
 };
 
 Producer.prototype.handleIncoming = function( eventName, data ){
-	
+	console.log( "This is handle incoming; I have " );
+	console.log( eventName );
+	console.log( data );
 };
 
 Producer.prototype.die = function( ){

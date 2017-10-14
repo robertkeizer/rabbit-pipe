@@ -59,8 +59,22 @@ describe( "Producer", function( ){
 
 		// Need to come back to; should emit an error based on 
 		// producerEvents.startCalledWhenAlreadyRunning
-		it.skip( "Calling .start fails if its already running", function( ){
-			
+		it( "Calling .start fails if its already running", function( cb ){
+			const tasks = new Tasks( );
+			const p = new Main.Producer( tasks.validSpecProducerConfig( {
+				waitForReadyListener: true,
+				autoStart: true,
+				eventNamesToListenTo: [ "line" ]
+			} ) );
+			p.once( producerEvents.readyToStart( ), function( ){ } );
+			p.once( producerEvents.running( ), function( ){
+				p.start( );
+			} );
+			p.once( "error", function( err ){
+				assert.equal( err, producerEvents.startCalledWhenAlreadyRunning( )[1] );
+				p.die();
+				return cb( null );
+			} );
 		} );
 
 		it( "Emits a running if we're good to go.", function( cb ){

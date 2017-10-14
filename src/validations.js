@@ -4,6 +4,8 @@ const Validations = function( ){
 	
 	return {
 		producerConfig: Joi.object( ).keys( {
+			test: Joi.boolean( ).default( false ),
+			autoStart: Joi.boolean( ).default( false ),
 			rabbit: Joi.object( ).keys( {
 				host: Joi.alternatives( ).try(
 					Joi.string( ).hostname(),

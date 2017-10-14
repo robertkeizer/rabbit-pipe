@@ -31,7 +31,7 @@ describe( "Producer", function( ){
 
 	it( "The producer emits a ready to start event when ready to start", function( cb ){
 		const tasks = new Tasks( );
-		const p = new Main.Producer( tasks.validSpecProducerConfig( { test: true } ) );
+		const p = new Main.Producer( tasks.validSpecProducerConfig( { waitForReadyListener: true } ) );
 		p.once( producerEvents.readyToStart( ), function( ){
 			return cb( null );
 		} );

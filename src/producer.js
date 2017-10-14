@@ -11,6 +11,12 @@ const producerEvents	= new ProducerEvents( );
 
 const Producer = function( config ){
 
+	// We may want to be a bit introspective
+	// and wait for certain listeners; This allows
+	// us to keep track of them.
+	this._readyListenerExists = false;
+	this._setupListeners( );
+
 	const self = this;
 	Joi.validate( config, validations.producerConfig, function( err, newConfig ){
 		if( err ){ throw err; }
@@ -30,10 +36,16 @@ const Producer = function( config ){
 			}
 		};
 
-		// If we are testing, let's wait 200ms before 
-		// going forward.
-		if( newConfig.test ){
-			setTimeout( next, 200 );
+		// Simple loop waiting for ready
+		if( newConfig.waitForReadyListener ){
+			const checkLoop = function( ){
+				if( self._readyListenerExists ){
+					next( );
+				}else{
+					setTimeout( checkLoop, 200 );
+				}
+			};
+			checkLoop( );
 		}else{
 			next();
 		}
@@ -41,5 +53,15 @@ const Producer = function( config ){
 };
 
 util.inherits( Producer, EventEmitter );
+
+Producer.prototype._setupListeners = function( ){
+	const self = this;
+	self.on( "newListener", function( eventName ){
+		if( eventName == producerEvents.readyToStart() ){
+			self._readyListenerExists = true;
+		}
+	} );
+};
+		
 
 module.exports = Producer;

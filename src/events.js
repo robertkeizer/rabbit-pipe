@@ -24,6 +24,10 @@ ProducerEvents.prototype.running = function( ){
 	return "running";
 };
 
+ProducerEvents.prototype.noStdinAndNoInputEmitter = function( ){
+	return [ "error", "The config option noStdin was truthy, and you haven't specified an input emitter." ];
+};
+
 module.exports = {
 	Producer: ProducerEvents
 }

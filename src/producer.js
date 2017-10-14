@@ -78,6 +78,13 @@ Producer.prototype.start = function( ){
 
 	this.emit( producerEvents.startingUp( ) );
 
+	if( !this.config.useStdin && !this.inputEmitter ){
+		this.emit.apply( this, producerEvents.noStdinAndNoInputEmitter( ) );
+		// remember to flick the switch because
+		// we haven't actually started up.
+		this._running = false;
+		return;
+	}
 
 	this.emit( producerEvents.running( ) );
 };

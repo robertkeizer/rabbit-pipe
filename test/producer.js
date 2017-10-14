@@ -54,4 +54,27 @@ describe( "Producer", function( ){
 			return cb( null );
 		} );
 	} );
+
+	describe( "Start", function( ){
+
+		// Need to come back to; should emit an error based on 
+		// producerEvents.startCalledWhenAlreadyRunning
+		it.skip( "Calling .start fails if its already running", function( ){
+			
+		} );
+
+		it( "fails if useStdin is false and we haven't passed in an event emitter", function( cb ){
+			const tasks = new Tasks( );
+			const p = new Main.Producer( tasks.validSpecProducerConfig( {
+				waitForReadyListener: true,
+				autoStart: true,
+				useStdin: false
+			} ) );
+			p.once( producerEvents.readyToStart( ), function( ){ } );
+			p.on( "error", function( err ){
+				assert.equal( err, producerEvents.noStdinAndNoInputEmitter( )[1] );
+				return cb( null );
+			} );
+		} );
+	} );
 } );

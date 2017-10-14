@@ -1,4 +1,3 @@
-const linebyline	= require( "linebyline" );
 const Joi		= require( "joi" );
 
 const validations	= require( "./validations" )( );
@@ -17,7 +16,8 @@ const Producer = function( config ){
 	this._readyListenerExists = false;
 	this._setupListeners( );
 
-	this._running = false;
+	this._running		= false;
+	this._listeners		= [ ];
 
 	const self = this;
 	Joi.validate( config, validations.producerConfig, function( err, newConfig ){
@@ -78,18 +78,41 @@ Producer.prototype.start = function( ){
 
 	this.emit( producerEvents.startingUp( ) );
 
-	if( !this.config.useStdin && !this.inputEmitter ){
-		this.emit.apply( this, producerEvents.noStdinAndNoInputEmitter( ) );
-		// remember to flick the switch because
-		// we haven't actually started up.
-		this._running = false;
-		return;
-	}
+	// At this point we know that we have inputEmitter ready,
+	// we just need to bind some listeners..
+
+	const self = this;
+	
+	this.config.eventNamesToListenTo.forEach( function( name ){
+
+		if( self._listeners[name] ){
+			return self.emit.apply( producerEvents.listenerAlreadyDefinedFor(name) );
+		}
+
+		self._listeners[name] = function( comingIn ){
+			self.handleIncoming( name, comingIn );
+		};
+
+		self.config.inputEmitter.on( name, self._listeners[name] );
+	} );
 
 	this.emit( producerEvents.running( ) );
 };
 
+Producer.prototype.handleIncoming = function( eventName, data ){
+	
+};
+
 Producer.prototype.die = function( ){
+	const self = this;
+
+	this.emit( producerEvents.dying() );
+
+	this._listeners.forEach( function( eventName ){
+		self.config.inputEmitter.removeListener( eventName, self._listeners[eventName] );
+	} );
+	
+	// Remove all listeners to this instance of the producer.
 	this.removeAllListeners( );
 };
 

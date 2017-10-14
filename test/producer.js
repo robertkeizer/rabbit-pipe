@@ -63,16 +63,16 @@ describe( "Producer", function( ){
 			
 		} );
 
-		it( "fails if useStdin is false and we haven't passed in an event emitter", function( cb ){
+		it( "Emits a running if we're good to go.", function( cb ){
 			const tasks = new Tasks( );
 			const p = new Main.Producer( tasks.validSpecProducerConfig( {
 				waitForReadyListener: true,
 				autoStart: true,
-				useStdin: false
+				eventNamesToListenTo: [ "line" ]
 			} ) );
 			p.once( producerEvents.readyToStart( ), function( ){ } );
-			p.on( "error", function( err ){
-				assert.equal( err, producerEvents.noStdinAndNoInputEmitter( )[1] );
+			p.once( producerEvents.running( ), function( ){
+				p.die();
 				return cb( null );
 			} );
 		} );

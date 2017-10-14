@@ -6,7 +6,10 @@ const Validations = function( ){
 		producerConfig: Joi.object( ).keys( {
 			waitForReadyListener: Joi.boolean( ).default( false ),
 			autoStart: Joi.boolean( ).default( false ),
-			useStdin: Joi.boolean( ).default( true ),
+			inputEmitter: Joi.object( ).required( ),
+			eventNamesToListenTo: Joi.array( ).items( 
+				Joi.string( )
+			).unique().default( [ ] ),
 			rabbit: Joi.object( ).keys( {
 				host: Joi.alternatives( ).try(
 					Joi.string( ).hostname(),

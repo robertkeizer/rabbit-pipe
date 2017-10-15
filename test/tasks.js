@@ -17,8 +17,7 @@ Tasks.prototype.validSpecProducerConfig = function( objToMerge ){
 	
 	return merge( {
 		rabbit: {
-			host: "localhost",
-			port: 5672
+			host: "localhost"
 		},
 		inputEmitter: inputEmitter
 	}, objToMerge );

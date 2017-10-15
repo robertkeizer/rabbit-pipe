@@ -8,6 +8,8 @@ const util		= require( "util" );
 const ProducerEvents	= require( "./events" ).Producer;
 const producerEvents	= new ProducerEvents( );
 
+const amqplib		= require( "amqplib" );
+
 const Producer = function( config ){
 
 	// We may want to be a bit introspective
@@ -15,6 +17,11 @@ const Producer = function( config ){
 	// us to keep track of them.
 	this._readyListenerExists = false;
 	this._setupListeners( );
+
+	// This needs to start off false so that
+	// our simple loop in the constructor waiting
+	// for things to start up works.
+	this._rabbitConnection = false;
 
 	this._running		= false;
 	this._listeners		= [ ];
@@ -25,6 +32,10 @@ const Producer = function( config ){
 
 		// Note that we use newConfig because we might have some defaults defined.
 		self.config = newConfig;
+
+		// We want to setup the rabbitmq connection once we've
+		// got the config in place.
+		self._setupRabbitMQConnection( );
 
 		const next = function( ){
 
@@ -41,7 +52,7 @@ const Producer = function( config ){
 		// Simple loop waiting for ready
 		if( newConfig.waitForReadyListener ){
 			const checkLoop = function( ){
-				if( self._readyListenerExists ){
+				if( self._rabbitConnection && self._readyListenerExists ){
 					next( );
 				}else{
 					setTimeout( checkLoop, 200 );
@@ -56,12 +67,25 @@ const Producer = function( config ){
 
 util.inherits( Producer, EventEmitter );
 
+// If we want to block wait for any listeners to us, we can do it
+// here. In particular, the readyToStart event is handy as it
+// is only fired when .start() could be called.
 Producer.prototype._setupListeners = function( ){
 	const self = this;
 	self.on( "newListener", function( eventName ){
 		if( eventName == producerEvents.readyToStart() ){
 			self._readyListenerExists = true;
 		}
+	} );
+};
+
+Producer.prototype._setupRabbitMQConnection = function( ){
+
+	const self = this;
+	amqplib.connect( "amqp://" + this.config.rabbit.host ).then( function( conn ){
+		self._rabbitConnection = conn;
+	} ).catch( function( err ){
+		self.emit( "error", err );
 	} );
 };
 

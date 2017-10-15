@@ -12,8 +12,7 @@ const Validations = function( ){
 			).unique().default( [ ] ),
 			rabbit: Joi.object( ).keys( {
 				host: Joi.alternatives( ).try(
-					Joi.string( ).hostname(),
-					Joi.string( ).ip( { cidr: 'forbidden' } )
+					Joi.string( ).hostname()
 				).required( ),
 				port: Joi.number( ).integer( ).min( 1 ).max( 65534 )
 			} ).required( )

@@ -10,6 +10,8 @@ const producerEvents	= new ProducerEvents( );
 
 const amqplib		= require( "amqplib" );
 
+const Promise		= require( "promise" );
+
 const Producer = function( config ){
 
 	// We may want to be a bit introspective
@@ -81,12 +83,22 @@ Producer.prototype._setupListeners = function( ){
 
 Producer.prototype._setupRabbitMQConnection = function( ){
 
+	this._rabbitConnection = {
+		close: function( ){
+			return new Promise( function( resolve, reject ){
+				resolve( );
+			} );
+		}
+	};
+
+	/*
 	const self = this;
 	amqplib.connect( "amqp://" + this.config.rabbit.host ).then( function( conn ){
 		self._rabbitConnection = conn;
 	} ).catch( function( err ){
 		self.emit( "error", err );
 	} );
+	*/
 };
 
 // This is called if autoStart is true, right after the
@@ -134,6 +146,16 @@ Producer.prototype.die = function( ){
 	const self = this;
 
 	this.emit( producerEvents.dying() );
+
+	if( this._rabbitConnection ){
+		console.log( "Calling rabbit close!" );
+		this._rabbitConnection.close().then( function( ){
+			console.log( "CLOSED" );
+		}, function( err ){
+			console.log( "WTF" );
+			console.log( err );
+		} );
+	}
 
 	this._listeners.forEach( function( eventName ){
 		self.config.inputEmitter.removeListener( eventName, self._listeners[eventName] );

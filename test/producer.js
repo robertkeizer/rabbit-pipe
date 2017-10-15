@@ -90,5 +90,25 @@ describe( "Producer", function( ){
 				return cb( null );
 			} );
 		} );
+
+		it( "Emits a handled data event when it does handle data.", function( cb ){
+
+			const _e = new events.EventEmitter( );
+			const tasks = new Tasks( );
+			const p = new Main.Producer( tasks.validSpecProducerConfig( {
+				waitForReadyListener: true,
+				autoStart: true,
+				eventNamesToListenTo: [ "hey" ],
+				inputEmitter: _e
+			} ) );
+			p.once( producerEvents.readyToStart( ), function( ){ } );
+			p.once( producerEvents.handledData( ), function( ){
+				p.die( );
+				return cb( null );
+			} );
+			p.once( producerEvents.running( ), function( ){
+				_e.emit( "hey", { "this": "is", "data": 1 } );
+			} );
+		} );
 	} );
 } );

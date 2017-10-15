@@ -28,6 +28,10 @@ ProducerEvents.prototype.dying = function( ){
 	return "dying";
 };
 
+ProducerEvents.prototype.handledData = function( ){
+	return "handledData";
+};
+
 module.exports = {
 	Producer: ProducerEvents
 }

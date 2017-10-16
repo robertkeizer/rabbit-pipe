@@ -8,7 +8,7 @@ const util		= require( "util" );
 const ProducerEvents	= require( "./events" ).Producer;
 const producerEvents	= new ProducerEvents( );
 
-const amqplib		= require( "amqplib" );
+const amqplib		= require( "amqplib/callback_api" );
 
 const Promise		= require( "promise" );
 
@@ -23,10 +23,11 @@ const Producer = function( config ){
 	// This needs to start off false so that
 	// our simple loop in the constructor waiting
 	// for things to start up works.
-	this._rabbitConnection = false;
+	this._rabbitConnection	= false;
 
 	this._running		= false;
 	this._listeners		= [ ];
+	
 
 	const self = this;
 	Joi.validate( config, validations.producerConfig, function( err, newConfig ){
@@ -82,23 +83,15 @@ Producer.prototype._setupListeners = function( ){
 };
 
 Producer.prototype._setupRabbitMQConnection = function( ){
-
-	this._rabbitConnection = {
-		close: function( ){
-			return new Promise( function( resolve, reject ){
-				resolve( );
-			} );
-		}
-	};
-
-	/*
 	const self = this;
-	amqplib.connect( "amqp://" + this.config.rabbit.host ).then( function( conn ){
-		self._rabbitConnection = conn;
-	} ).catch( function( err ){
-		self.emit( "error", err );
+	let _conn = false;
+	amqplib.connect( "amqp://" + this.config.rabbit.host, function( err, conn ){
+		if( err ){
+			return self.emit( "error", err );
+		}
+
+		self._rabbitConnection	= conn;
 	} );
-	*/
 };
 
 // This is called if autoStart is true, right after the
@@ -148,12 +141,9 @@ Producer.prototype.die = function( ){
 	this.emit( producerEvents.dying() );
 
 	if( this._rabbitConnection ){
-		console.log( "Calling rabbit close!" );
-		this._rabbitConnection.close().then( function( ){
-			console.log( "CLOSED" );
-		}, function( err ){
-			console.log( "WTF" );
-			console.log( err );
+		self._rabbitConnection.close( function( err ){
+			console.log("Closed" );
+			console.log( err);
 		} );
 	}
 

@@ -231,7 +231,7 @@ Producer.prototype.start = function( ){
 
 	this.emit( producerEvents.startingUp( ) );
 
-	// At this point we know that we have inputEmitter ready,
+	// At this point we know that we have inputStream ready,
 	// we just need to bind some listeners..
 
 	const self = this;
@@ -246,7 +246,7 @@ Producer.prototype.start = function( ){
 			self.handleIncoming( name, comingIn );
 		};
 
-		self.config.inputEmitter.on( name, self._listeners[name] );
+		self.config.inputStream.on( name, self._listeners[name] );
 	} );
 
 	this.emit( producerEvents.running( ) );
@@ -254,10 +254,10 @@ Producer.prototype.start = function( ){
 
 Producer.prototype.handleIncoming = function( eventName, data ){
 	
-	if( this._shouldPause && !this.config.inputEmitter.isPaused() ){
-		this.config.inputEmitter.pause( );
-	}else if( this.config.inputEmitter.isPaused() && !this._shouldPause ){
-		this.config.inputEmitter.resume( );
+	if( this._shouldPause && !this.config.inputStream.isPaused() ){
+		this.config.inputStream.pause( );
+	}else if( this.config.inputStream.isPaused() && !this._shouldPause ){
+		this.config.inputStream.resume( );
 	}
 
 	console.log( "This is handle incoming; I have " );
@@ -284,7 +284,7 @@ Producer.prototype.die = function( ){
 	}
 
 	this._listeners.forEach( function( eventName ){
-		self.config.inputEmitter.removeListener( eventName, self._listeners[eventName] );
+		self.config.inputStream.removeListener( eventName, self._listeners[eventName] );
 	} );
 	
 	// Remove all listeners to this instance of the producer.

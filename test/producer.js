@@ -2,6 +2,7 @@ const Main	= require( "../" );
 const assert	= require( "assert" );
 const Tasks	= require( "./tasks" );
 
+const stream	= require( "stream" );
 const events	= require( "events" );
 
 const ProducerEvents	= require( "../src/events" ).Producer;
@@ -101,13 +102,13 @@ describe( "Producer", function( ){
 
 		it( "Emits a handled data event when it does handle data.", function( cb ){
 
-			const _e = new events.EventEmitter( );
+			const _s = new stream.Writeable( );
 			const tasks = new Tasks( );
 			const p = new Main.Producer( tasks.validSpecProducerConfig( {
 				waitForReadyListener: true,
 				autoStart: true,
-				eventNamesToListenTo: [ "hey" ],
-				inputEmitter: _e
+				eventNamesToListenTo: [ "data" ],
+				inputStream: _s
 			} ) );
 			p.once( producerEvents.readyToStart( ), function( ){ } );
 			p.once( producerEvents.handledData( ), function( ){
@@ -117,7 +118,7 @@ describe( "Producer", function( ){
 				}, 2000 );
 			} );
 			p.once( producerEvents.running( ), function( ){
-				_e.emit( "hey", { "this": "is", "data": 1 } );
+				_s.write( "this_is_data" );
 			} );
 		} );
 	} );

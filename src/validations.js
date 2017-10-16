@@ -20,6 +20,7 @@ const Validations = function( ){
 					durable: Joi.boolean( )
 				} ).default( { durable: false } ),
 				maxQueueLength: Joi.number( ).integer( ),
+				checkQueueFrequency: Joi.number( ).integer( ).default( 2500 )
 			} ).required( )
 		} ).required( )
 	};

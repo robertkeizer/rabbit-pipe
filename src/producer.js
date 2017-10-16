@@ -23,9 +23,17 @@ const Producer = function( config ){
 	// for things to start up works.
 	this._rabbitConnection	= false;
 
+	// Whether or not we are actively checking the queue length.
+	// This exists so that if there is an error getting
+	// the length, and we shouldn't get an error, we emit
+	// the error.
+	this._shouldCheckQueueLengthLoop = false;
+
+	// Whether or not we should pause the input emitter.
+	this._shouldPause	= false;
+
 	this._running		= false;
 	this._listeners		= [ ];
-	
 
 	const self = this;
 	async.waterfall( [ function( cb ){
@@ -50,6 +58,12 @@ const Producer = function( config ){
 		// We want to setup the rabbitmq connection once we've
 		// got the config in place.
 		self._setupRabbitMQConnection( cb );
+
+	}, function( cb ){
+
+		// Let's go ahead and start the loop for checking
+		// the queue length.
+		self._startQueueLengthLoop( cb );
 
 	}, function( cb ){
 
@@ -132,9 +146,76 @@ Producer.prototype._setupRabbitMQConnection = function( cb ){
 			return self.emit( "error", err );
 		}
 
+		// We want to start checking the queue length now.
+		if( self.config.rabbit.checkQueueFrequency > 0 ){
+			self._shouldCheckQueueLengthLoop = true;
+		}
+
 		self._rabbitConnection	= conn;
 		return cb( null );
 	} );
+};
+
+Producer.prototype._startQueueLengthLoop = function( cb ){
+	
+	// Don't start the loop if we shouldn't be looping.
+	if( !this._shouldCheckQueueLengthLoop ){
+		return cb( null );
+	}
+	
+	const self = this;
+	const loop = function( ){
+		if( self._rabbitConnection && self._shouldCheckQueueLengthLoop ){
+
+			async.waterfall( [ function( cb ){
+				self._rabbitConnection.createChannel( cb );
+			}, function( ch, cb ){
+				ch.checkQueue( self.config.rabbit.queueName, function( err, reply ){
+					return cb( err, ch, reply );
+				} );
+			} ], function( err, ch, reply ){
+				if( ch ){ ch.close(); }
+				if( err ){
+					if( self._shouldCheckQueueLengthLoop ){
+						self.emit( "error", err );
+					}
+				}
+
+				if( !err && ( !reply || !reply.messageCount ) ){
+					// There is a problem, we didn't get an error
+					// back but we also didn't get a reply or
+					// a message count..
+					self.emit.apply( self, producerEvents.noreplyOnCheckQueue( reply ) );
+					return;
+				}
+
+				if( reply && reply.messageCount ){
+
+					if( reply.messageCount >= self.config.rabbit.maxQueueLength ){
+						// Equal or more than the maximum number of
+						// messages in the queue.
+						
+						self._shouldPause = true;
+					}else{
+						// Smaller number of messages in the queue.
+
+						// If we're paused, we should unpause.
+						if( self._shouldPause ){
+							self._shouldPause = false;
+						}
+					}
+				}
+
+				setTimeout( function( ){
+					loop( );
+				}, self.config.rabbit.checkQueueFrequency );
+			} );
+		}
+	};
+
+	loop();
+
+	return cb( null );
 };
 
 // This is called if autoStart is true, right after the
@@ -172,9 +253,17 @@ Producer.prototype.start = function( ){
 };
 
 Producer.prototype.handleIncoming = function( eventName, data ){
+	
+	if( this._shouldPause && !this.config.inputEmitter.isPaused() ){
+		this.config.inputEmitter.pause( );
+	}else if( this.config.inputEmitter.isPaused() && !this._shouldPause ){
+		this.config.inputEmitter.resume( );
+	}
+
 	console.log( "This is handle incoming; I have " );
 	console.log( eventName );
 	console.log( data );
+
 	this.emit( producerEvents.handledData( ) );
 };
 
@@ -184,6 +273,11 @@ Producer.prototype.die = function( ){
 	this.emit( producerEvents.dying() );
 
 	if( this._rabbitConnection ){
+
+		// Stop any checking of the queue length
+		self._shouldCheckQueueLengthLoop = false;
+
+		// Close down the connection.
 		self._rabbitConnection.close( function( err ){
 			this._rabbitConnection = false;
 		} );

@@ -111,8 +111,10 @@ describe( "Producer", function( ){
 			} ) );
 			p.once( producerEvents.readyToStart( ), function( ){ } );
 			p.once( producerEvents.handledData( ), function( ){
-				p.die( );
-				return cb( null );
+				setTimeout( function( ){
+					p.die( );
+					return cb( null );
+				}, 2000 );
 			} );
 			p.once( producerEvents.running( ), function( ){
 				_e.emit( "hey", { "this": "is", "data": 1 } );

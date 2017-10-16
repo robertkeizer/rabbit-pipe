@@ -32,6 +32,18 @@ ProducerEvents.prototype.handledData = function( ){
 	return "handledData";
 };
 
+ProducerEvents.prototype.noreplyOnCheckQueue = function( reply ){
+	let _return = [ "error" ];
+
+	if( reply ){
+		_return.push( "Check Queue Length Loop error: No reply back." );
+	}else{
+		_return.push( "Check Queue Length Loop error: Didn't find messageCount in " + JSON.stringify( reply ) );
+	}
+
+	return _return;
+};
+
 module.exports = {
 	Producer: ProducerEvents
 }

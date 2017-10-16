@@ -11,8 +11,6 @@ const producerEvents	= new ProducerEvents( );
 const amqplib		= require( "amqplib/callback_api" );
 const async		= require( "async" );
 
-const Promise		= require( "promise" );
-
 const Producer = function( config ){
 
 	// We may want to be a bit introspective

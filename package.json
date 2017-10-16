@@ -15,8 +15,7 @@
 		"amqplib": "^0.5.1",
 		"async": "^2.5.0",
 		"joi": "^13.0.0",
-		"linebyline": "^1.3.0",
-		"promise": "^8.0.1"
+		"linebyline": "^1.3.0"
 	},
 	"devDependencies": {
 		"assert": "^1.4.1",

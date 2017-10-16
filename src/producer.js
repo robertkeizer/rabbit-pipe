@@ -19,7 +19,6 @@ const Producer = function( config ){
 	// and wait for certain listeners; This allows
 	// us to keep track of them.
 	this._readyListenerExists = false;
-	this._setupListeners( );
 
 	// This needs to start off false so that
 	// our simple loop in the constructor waiting
@@ -36,16 +35,49 @@ const Producer = function( config ){
 		Joi.validate( config, validations.producerConfig, cb );
 
 	}, function( newConfig, cb ){
-
+	
 		// Note that we use newConfig because we might have some defaults defined.
 		self.config = newConfig;
+		return cb( null );
+
+	}, function( cb ){
+
+		// Setup the listeners for ourselves. IE we want
+		// to know when certain listeners are attached to us,
+		// so we use a listener for that. meta huh.
+		self._setupListeners( cb );
+
+	}, function( cb ){
 
 		// We want to setup the rabbitmq connection once we've
 		// got the config in place.
 		self._setupRabbitMQConnection( cb );
+
 	}, function( cb ){
 
-		const next = function( ){
+		async.whilst( function( ){
+
+			// If we aren't waiting for the ready, lets continue on.
+			if( !self.config.waitForReadyListener ){
+				return false;
+			}
+
+			// If we don't have the listener..
+			if( self._readyListenerExists ){
+				return false;
+			}
+
+			return true;
+
+		}, function( cb ){
+
+			// Let's wait 100ms for things to 
+			// get attached..
+			setTimeout( function( ){
+				return cb( null );
+			}, 100 );
+
+		}, function( err ){
 
 			// We're ready as a producer; Let's go ahead and let eveyone know.
 			self.emit( producerEvents.readyToStart( ) );
@@ -54,23 +86,11 @@ const Producer = function( config ){
 			// call start automatically when we're ready.
 			if( self.config.autoStart ){
 				self.start( );
-				return cb( null );
 			}
-		};
 
-		// Simple loop waiting for ready
-		if( self.config.waitForReadyListener ){
-			const checkLoop = function( ){
-				if( self._rabbitConnection && self._readyListenerExists ){
-					next( );
-				}else{
-					setTimeout( checkLoop, 200 );
-				}
-			};
-			checkLoop( );
-		}else{
-			next();
-		}
+			return cb( null );
+		} );
+
 	} ], function( err ){
 		if( err ){ throw err; }
 	} );
@@ -81,13 +101,14 @@ util.inherits( Producer, EventEmitter );
 // If we want to block wait for any listeners to us, we can do it
 // here. In particular, the readyToStart event is handy as it
 // is only fired when .start() could be called.
-Producer.prototype._setupListeners = function( ){
+Producer.prototype._setupListeners = function( cb ){
 	const self = this;
 	self.on( "newListener", function( eventName ){
 		if( eventName == producerEvents.readyToStart() ){
 			self._readyListenerExists = true;
 		}
 	} );
+	return cb( null );
 };
 
 Producer.prototype._setupRabbitMQConnection = function( cb ){

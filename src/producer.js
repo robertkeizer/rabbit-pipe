@@ -124,7 +124,7 @@ Producer.prototype._setupRabbitMQConnection = function( cb ){
 
 	}, function( conn, ch, cb ){
 
-		ch.assertQueue( "test", { durable: false } );
+		ch.assertQueue( self.config.rabbit.queueName, self.config.rabbit.queueOptions );
 		return cb( null, conn );
 
 	} ], function( err, conn ){

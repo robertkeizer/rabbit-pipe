@@ -1,5 +1,6 @@
 const merge	= require( "merge" );
 const Events	= require( "events" );
+const uuid	= require( "uuid" );
 
 const Tasks = function( ){
 	
@@ -17,9 +18,11 @@ Tasks.prototype.validSpecProducerConfig = function( objToMerge ){
 	
 	return merge( {
 		rabbit: {
-			host: "localhost"
+			host: "localhost",
+			maxQueueLength: 1000,
+			queueName: "test-" + uuid.v4()
 		},
-		inputEmitter: inputEmitter
+		inputEmitter: inputEmitter,
 	}, objToMerge );
 };
 

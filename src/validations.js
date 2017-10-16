@@ -14,7 +14,12 @@ const Validations = function( ){
 				host: Joi.alternatives( ).try(
 					Joi.string( ).hostname()
 				).required( ),
-				port: Joi.number( ).integer( ).min( 1 ).max( 65534 )
+				port: Joi.number( ).integer( ).min( 1 ).max( 65534 ),
+				queueName: Joi.string( ).required( ),
+				queueOptions: Joi.object( ).keys( {
+					durable: Joi.boolean( )
+				} ).default( { durable: false } ),
+				maxQueueLength: Joi.number( ).integer( ),
 			} ).required( )
 		} ).required( )
 	};

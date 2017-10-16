@@ -9,6 +9,7 @@ const ProducerEvents	= require( "./events" ).Producer;
 const producerEvents	= new ProducerEvents( );
 
 const amqplib		= require( "amqplib/callback_api" );
+const async		= require( "async" );
 
 const Promise		= require( "promise" );
 
@@ -30,15 +31,19 @@ const Producer = function( config ){
 	
 
 	const self = this;
-	Joi.validate( config, validations.producerConfig, function( err, newConfig ){
-		if( err ){ throw err; }
+	async.waterfall( [ function( cb ){
+
+		Joi.validate( config, validations.producerConfig, cb );
+
+	}, function( newConfig, cb ){
 
 		// Note that we use newConfig because we might have some defaults defined.
 		self.config = newConfig;
 
 		// We want to setup the rabbitmq connection once we've
 		// got the config in place.
-		self._setupRabbitMQConnection( );
+		self._setupRabbitMQConnection( cb );
+	}, function( cb ){
 
 		const next = function( ){
 
@@ -47,13 +52,14 @@ const Producer = function( config ){
 
 			// If we have autoStart as true, we should 
 			// call start automatically when we're ready.
-			if( newConfig.autoStart ){
+			if( self.config.autoStart ){
 				self.start( );
+				return cb( null );
 			}
 		};
 
 		// Simple loop waiting for ready
-		if( newConfig.waitForReadyListener ){
+		if( self.config.waitForReadyListener ){
 			const checkLoop = function( ){
 				if( self._rabbitConnection && self._readyListenerExists ){
 					next( );
@@ -65,6 +71,8 @@ const Producer = function( config ){
 		}else{
 			next();
 		}
+	} ], function( err ){
+		if( err ){ throw err; }
 	} );
 };
 
@@ -82,15 +90,31 @@ Producer.prototype._setupListeners = function( ){
 	} );
 };
 
-Producer.prototype._setupRabbitMQConnection = function( ){
+Producer.prototype._setupRabbitMQConnection = function( cb ){
 	const self = this;
 	let _conn = false;
-	amqplib.connect( "amqp://" + this.config.rabbit.host, function( err, conn ){
+	async.waterfall( [ function( cb ){
+
+		amqplib.connect( "amqp://" + self.config.rabbit.host, cb );
+
+	}, function( conn, cb ){
+
+		conn.createChannel( function( err, ch ){
+			return cb( err, conn, ch );
+		} );
+
+	}, function( conn, ch, cb ){
+
+		ch.assertQueue( "test", { durable: false } );
+		return cb( null, conn );
+
+	} ], function( err, conn ){
 		if( err ){
 			return self.emit( "error", err );
 		}
 
 		self._rabbitConnection	= conn;
+		return cb( null );
 	} );
 };
 
@@ -142,8 +166,7 @@ Producer.prototype.die = function( ){
 
 	if( this._rabbitConnection ){
 		self._rabbitConnection.close( function( err ){
-			console.log("Closed" );
-			console.log( err);
+			this._rabbitConnection = false;
 		} );
 	}
 

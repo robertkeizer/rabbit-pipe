@@ -18,15 +18,23 @@ describe( "Producer", function( ){
 		} );
 	} );
 
-	it( "Doesn't throw an error if config is passed in", function( ){
+	it( "Doesn't throw an error if config is passed in", function( cb ){
 		const tasks = new Tasks( );
-		const p = new Main.Producer( tasks.validSpecProducerConfig( ) );
+		const p = new Main.Producer( tasks.validSpecProducerConfig( { waitForReadyListener: true } ) );
+		p.once( producerEvents.readyToStart( ), function( ){
+			p.die();
+			return cb( null );
+		} );
 	} );
 
-	it( "The Producer inherits from the event emitter", function( ){
+	it( "The Producer inherits from the event emitter", function( cb ){
 		const tasks = new Tasks( );
-		const p = new Main.Producer( tasks.validSpecProducerConfig( ) );
+		const p = new Main.Producer( tasks.validSpecProducerConfig( { waitForReadyListener: true } ) );
 		assert.ok( p instanceof events.EventEmitter );
+		p.once( producerEvents.readyToStart(), function( ){
+			p.die();
+			return cb( null );
+		} );
 	} );
 
 	it( "The producer emits a ready to start event when ready to start", function( cb ){

@@ -100,9 +100,15 @@ describe( "Producer", function( ){
 			} );
 		} );
 
-		it( "Emits a handled data event when it does handle data.", function( cb ){
+		it.only( "Emits a handled data event when it does handle data.", function( cb ){
 
-			const _s = new stream.Writeable( );
+			const MyStream = new stream.Readable( );
+			MyStream._read = function( bytes ){
+				console.log( "This is _read.." );
+				this.push("heh?");
+			};
+
+			const _s = MyStream;
 			const tasks = new Tasks( );
 			const p = new Main.Producer( tasks.validSpecProducerConfig( {
 				waitForReadyListener: true,
@@ -118,7 +124,7 @@ describe( "Producer", function( ){
 				}, 2000 );
 			} );
 			p.once( producerEvents.running( ), function( ){
-				_s.write( "this_is_data" );
+				//_s.write( "this_is_data" );
 			} );
 		} );
 	} );

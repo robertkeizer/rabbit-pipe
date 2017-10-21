@@ -102,7 +102,7 @@ describe( "Producer", function( ){
 			} );
 		} );
 
-		it( "Emits a handled data event when it does handle data.", function( cb ){
+		it( "Adds records to the queue as appropriate", function( cb ){
 
 			const _ee = new events.EventEmitter( );
 
@@ -110,7 +110,11 @@ describe( "Producer", function( ){
 				eventEmitter: _ee,
 				eventNames: [ "data" ]
 			} );
-			_ee.emit( "data", "Some Data" );
+
+			for( var k=0; k<1000; k++ ){
+				_ee.emit( "data", "Some Data" );
+			}
+
 			const tasks = new Tasks( );
 			const p = new Main.Producer( tasks.validSpecProducerConfig( {
 				waitForReadyListener: true,
@@ -123,13 +127,49 @@ describe( "Producer", function( ){
 			} ) );
 			p.once( producerEvents.readyToStart( ), function( ){ } );
 			p.once( producerEvents.handledData( ), function( ){
+				p.die( );
+				return cb( null );
+			} );
+		} );
+
+		it.skip( "Properly limits the rabbit queue.", function( cb ){
+
+			const _ee = new events.EventEmitter( );
+
+			const myStream = new event2stream( {
+				eventEmitter: _ee,
+				eventNames: [ "data" ]
+			} );
+
+			const _add_thousand = function( ){
+				for( var k=0; k<1000; k++ ){
+					_ee.emit( "data", "Some Data" );
+				}
+			};
+
+			_add_thousand( );
+			setTimeout( function( ){
+				_add_thousand( );
+			}, 1000 );
+
+			const tasks = new Tasks( );
+			const p = new Main.Producer( tasks.validSpecProducerConfig( {
+				waitForReadyListener: true,
+				autoStart: true,
+				eventNamesToListenTo: [ "data" ],
+				inputStream: myStream,
+				rabbit: {
+					maxQueueLength: 1000,
+					checkQueueFrequency: 10,
+					deleteQueueOnDeath: true
+				}
+			} ) );
+			p.once( producerEvents.readyToStart( ), function( ){ } );
+			p.once( producerEvents.handledData( ), function( ){
 				setTimeout( function( ){
 					p.die( );
 					return cb( null );
-				}, 2000 );
-			} );
-			p.once( producerEvents.running( ), function( ){
-				//_s.write( "this_is_data" );
+				}, 4000 );
 			} );
 		} );
 	} );

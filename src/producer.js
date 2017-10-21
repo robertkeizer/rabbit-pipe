@@ -276,9 +276,29 @@ Producer.prototype.die = function( ){
 		// Stop any checking of the queue length
 		self._shouldCheckQueueLengthLoop = false;
 
-		// Close down the connection.
-		self._rabbitConnection.close( function( err ){
-			this._rabbitConnection = false;
+		async.waterfall( [ function( cb ){
+
+			if( self.config.rabbit.deleteQueueOnDeath ){
+				// amqplib is shit for docs; the object of options is required
+				// if you want the callback.
+				self._rabbitChannel.deleteQueue( self.config.rabbit.queueName, {
+					ifUnused: false,
+					ifEmpty: false
+				}, cb );
+				return;
+			}
+			return cb( null, null );
+		}, function( deleteResponse, cb ){
+
+			// Close down the connection.
+			self._rabbitConnection.close( function( err ){
+				this._rabbitConnection = false;
+				return cb( null );
+			} );
+		} ], function( err ){
+			// The only error that is possible right here is
+			// delete queue.. we don't care at this point.
+			// This should be addressed in a future version.
 		} );
 	}
 

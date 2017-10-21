@@ -102,18 +102,24 @@ describe( "Producer", function( ){
 			} );
 		} );
 
-		it.only( "Emits a handled data event when it does handle data.", function( cb ){
+		it( "Emits a handled data event when it does handle data.", function( cb ){
 
 			const _ee = new events.EventEmitter( );
 
-			const myStream = new event2stream( { eventEmitter: _ee, eventNames: [ "data" ] } );
+			const myStream = new event2stream( {
+				eventEmitter: _ee,
+				eventNames: [ "data" ]
+			} );
 			_ee.emit( "data", "Some Data" );
 			const tasks = new Tasks( );
 			const p = new Main.Producer( tasks.validSpecProducerConfig( {
 				waitForReadyListener: true,
 				autoStart: true,
 				eventNamesToListenTo: [ "data" ],
-				inputStream: myStream
+				inputStream: myStream,
+				rabbit: {
+					deleteQueueOnDeath: true
+				}
 			} ) );
 			p.once( producerEvents.readyToStart( ), function( ){ } );
 			p.once( producerEvents.handledData( ), function( ){

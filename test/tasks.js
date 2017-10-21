@@ -17,7 +17,7 @@ Tasks.prototype.validSpecProducerConfig = function( objToMerge ){
 
 	const inputStream = new stream.Writable( );
 	
-	return merge( {
+	return merge.recursive( {
 		rabbit: {
 			host: "localhost",
 			maxQueueLength: 1000,

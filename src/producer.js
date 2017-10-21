@@ -139,9 +139,9 @@ Producer.prototype._setupRabbitMQConnection = function( cb ){
 	}, function( conn, ch, cb ){
 
 		ch.assertQueue( self.config.rabbit.queueName, self.config.rabbit.queueOptions );
-		return cb( null, conn );
+		return cb( null, conn, ch );
 
-	} ], function( err, conn ){
+	} ], function( err, conn, ch ){
 		if( err ){
 			return self.emit( "error", err );
 		}
@@ -152,6 +152,7 @@ Producer.prototype._setupRabbitMQConnection = function( cb ){
 		}
 
 		self._rabbitConnection	= conn;
+		self._rabbitChannel	= ch;
 		return cb( null );
 	} );
 };
@@ -261,10 +262,7 @@ Producer.prototype.handleIncoming = function( eventName, data ){
 		this.config.inputStream.resume( );
 	}
 
-	console.log( "This is handle incoming; I have " );
-	console.log( eventName );
-	console.log( data );
-
+	this._rabbitChannel.sendToQueue( this.config.rabbit.queueName, data );
 	this.emit( producerEvents.handledData( ) );
 };
 

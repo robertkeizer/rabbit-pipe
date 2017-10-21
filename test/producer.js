@@ -106,7 +106,6 @@ describe( "Producer", function( ){
 
 			const _ee = new events.EventEmitter( );
 
-
 			const myStream = new event2stream( { eventEmitter: _ee, eventNames: [ "data" ] } );
 			_ee.emit( "data", "Some Data" );
 			const tasks = new Tasks( );

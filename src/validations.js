@@ -4,6 +4,7 @@ const Validations = function( ){
 	
 	return {
 		producerConfig: Joi.object( ).keys( {
+			dieOnEnd: Joi.boolean( ).default( false ),
 			waitForReadyListener: Joi.boolean( ).default( false ),
 			autoStart: Joi.boolean( ).default( false ),
 			inputStream: Joi.object( ).required( ),

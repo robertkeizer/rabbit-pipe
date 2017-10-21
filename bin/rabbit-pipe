@@ -1,0 +1,34 @@
+#!/usr/bin/env node
+
+const program = require( "commander" );
+const readline = require( "readline" );
+const Main = require( "../" );
+
+process.stdin.pause();
+setTimeout( function( ){
+	console.log( "resuming" );
+	process.stdin.resume();
+}, 1000 );
+
+program.version( "0.1.0" )
+	.option( "-q, --queue [queue]", "Queue name to use" )
+	.parse( process.argv );
+
+try{
+	const p = new Main.Producer( {
+		dieOnEnd: true,
+		inputStream: readline.createInterface( { input: process.stdin, terminal: false } ),
+		waitForReadyListener: false,
+		autoStart: true,
+		eventNamesToListenTo: [ "line" ],
+		rabbit: {
+			host: "localhost",
+			queueName: program.queue,
+			maxQueueLength: 1000,
+			checkQueueFrequency: 100,
+			deleteQueueOnDeath: false
+		}
+	} );
+} catch( err ){
+	console.log( "ERROR: " + err );
+}

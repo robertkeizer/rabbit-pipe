@@ -126,6 +126,7 @@ Producer.prototype._setupListeners = function( cb ){
 Producer.prototype._setupRabbitMQConnection = function( cb ){
 	const self = this;
 	let _conn = false;
+
 	async.waterfall( [ function( cb ){
 
 		amqplib.connect( "amqp://" + self.config.rabbit.host, cb );
@@ -139,9 +140,11 @@ Producer.prototype._setupRabbitMQConnection = function( cb ){
 	}, function( conn, ch, cb ){
 
 		ch.assertQueue( self.config.rabbit.queueName, self.config.rabbit.queueOptions );
+
 		return cb( null, conn, ch );
 
 	} ], function( err, conn, ch ){
+
 		if( err ){
 			return self.emit( "error", err );
 		}
@@ -224,7 +227,7 @@ Producer.prototype._startQueueLengthLoop = function( cb ){
 // readyToStart event is fired. It call also be called manually
 // for some reason if you have autoStart off.
 Producer.prototype.start = function( ){
-		
+
 	if( this._running ){
 		return this.emit.apply( this, producerEvents.startCalledWhenAlreadyRunning( ) );
 	}else{
@@ -244,6 +247,7 @@ Producer.prototype.start = function( ){
 			return self.emit.apply( producerEvents.listenerAlreadyDefinedFor(name) );
 		}
 
+		console.log( "Setting up listener for " + name );
 		self._listeners[name] = function( comingIn ){
 			self.handleIncoming( name, comingIn );
 		};
@@ -251,10 +255,22 @@ Producer.prototype.start = function( ){
 		self.config.inputStream.on( name, self._listeners[name] );
 	} );
 
+	// If we should die when the input stream has ended; Let's 
+	// listen for that event..
+	if( self.config.dieOnEnd ){
+
+		self.config.inputStream.once( "close", function( ){
+			console.log( "Caught close" );
+			//self.die();
+		} );
+	}
+
 	this.emit( producerEvents.running( ) );
 };
 
 Producer.prototype.handleIncoming = function( eventName, data ){
+
+	console.log( "This is handle incoming.." );
 	
 	if( this._shouldPause && !this.config.inputStream.isPaused() ){
 		this.config.inputStream.pause( );

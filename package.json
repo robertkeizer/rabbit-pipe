@@ -20,6 +20,7 @@
 	},
 	"devDependencies": {
 		"assert": "^1.4.1",
+		"event2stream": "^0.1.2",
 		"merge": "^1.2.0",
 		"mocha": "^4.0.1"
 	}

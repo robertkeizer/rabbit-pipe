@@ -181,7 +181,7 @@ Producer.prototype._startQueueLengthLoop = function( cb ){
 					}
 				}
 
-				if( !err && ( !reply || !reply.messageCount ) ){
+				if( !err && ( !reply || Object.keys( reply ).indexOf( "messageCount" ) < 0 ) ){
 					// There is a problem, we didn't get an error
 					// back but we also didn't get a reply or
 					// a message count..
@@ -189,9 +189,10 @@ Producer.prototype._startQueueLengthLoop = function( cb ){
 					return;
 				}
 
-				if( reply && reply.messageCount ){
+				if( reply && Object.keys( reply ).indexOf( "messageCount" ) >= 0 ){
 
 					if( reply.messageCount >= self.config.rabbit.maxQueueLength ){
+
 						// Equal or more than the maximum number of
 						// messages in the queue.
 						

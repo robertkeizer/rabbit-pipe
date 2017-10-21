@@ -8,6 +8,8 @@ const events	= require( "events" );
 const ProducerEvents	= require( "../src/events" ).Producer;
 const producerEvents	= new ProducerEvents( );
 
+const event2stream	= require( "event2stream" );
+
 describe( "Producer", function( ){
 	it( "Is a function", function( ){
 		assert.ok( typeof( Main.Producer ) == "function" );
@@ -102,19 +104,17 @@ describe( "Producer", function( ){
 
 		it.only( "Emits a handled data event when it does handle data.", function( cb ){
 
-			const MyStream = new stream.Readable( );
-			MyStream._read = function( bytes ){
-				console.log( "This is _read.." );
-				this.push("heh?");
-			};
+			const _ee = new events.EventEmitter( );
 
-			const _s = MyStream;
+
+			const myStream = new event2stream( { eventEmitter: _ee, eventNames: [ "data" ] } );
+			_ee.emit( "data", "Some Data" );
 			const tasks = new Tasks( );
 			const p = new Main.Producer( tasks.validSpecProducerConfig( {
 				waitForReadyListener: true,
 				autoStart: true,
 				eventNamesToListenTo: [ "data" ],
-				inputStream: _s
+				inputStream: myStream
 			} ) );
 			p.once( producerEvents.readyToStart( ), function( ){ } );
 			p.once( producerEvents.handledData( ), function( ){

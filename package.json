@@ -7,6 +7,10 @@
 	"scripts": {
 		"test": "./node_modules/mocha/bin/mocha -t 5000"
 	},
+	"license": "MIT",
+	"bin": {
+		"rabbit-pipe": "./bin/rabbit-pipe"
+	},
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/robertkeizer/rabbit-pipe.git"

@@ -14,9 +14,25 @@ Also contains a node module to transit data from a [ReadableStream](https://node
 npm install -g rabbit-pipe
 ```
 
+## Usage
+
+*rabbit-pipe*
+```
+  Usage: rabbit-pipe [options]
+
+  Options:
+
+    -V, --version                     output the version number
+    -q, --queue <queue>               Queue name to use
+    -l, --queue-length [queuelength]  Maximum number of items in the queue
+    -f, --queue-freq [queuefreq]      How often to check the queue length (ms)
+    -H, --host [host]                 Rabbit host to use
+    -h, --help                        output usage information
+```
+
 ## Examples
 
 *Example*: Put each filename into a rabbit queue named `files`.
 ```
-find / -type f | rabbit-pipe -q files
+find / -type f | rabbit-pipe -q files -l 1000 -f 100
 ```

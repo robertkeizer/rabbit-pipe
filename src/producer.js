@@ -35,6 +35,11 @@ const Producer = function( config ){
 	this._running		= false;
 	this._listeners		= [ ];
 
+	// This counter is used to make sure we 
+	// pause the input when we've handled the maximum
+	// number of messages.. 
+	this._counter = 0;
+
 	const self = this;
 	async.waterfall( [ function( cb ){
 
@@ -139,9 +144,14 @@ Producer.prototype._setupRabbitMQConnection = function( cb ){
 
 	}, function( conn, ch, cb ){
 
-		ch.assertQueue( self.config.rabbit.queueName, self.config.rabbit.queueOptions );
+		ch.assertQueue( self.config.rabbit.queueName, self.config.rabbit.queueOptions, function( err, ok ){
 
-		return cb( null, conn, ch );
+			if( ok.messageCount >= self.config.rabbit.maxQueueLength && self.config.rabbit.maxQueueLength !== 0 ){
+				self._shouldPause = true;
+			}
+
+			return cb( err, conn, ch );
+		} );
 
 	} ], function( err, conn, ch ){
 
@@ -195,7 +205,7 @@ Producer.prototype._startQueueLengthLoop = function( cb ){
 
 				if( reply && Object.keys( reply ).indexOf( "messageCount" ) >= 0 ){
 
-					if( reply.messageCount >= self.config.rabbit.maxQueueLength ){
+					if( reply.messageCount >= self.config.rabbit.maxQueueLength && self.config.rabbit.maxQueueLength !== 0 ){
 
 						// Equal or more than the maximum number of
 						// messages in the queue.
@@ -207,6 +217,8 @@ Producer.prototype._startQueueLengthLoop = function( cb ){
 						// If we're paused, we should unpause.
 						if( self._shouldPause ){
 							self._shouldPause = false;
+							self._counter = 0;
+							self.config.inputStream.resume();
 						}
 					}
 				}
@@ -236,6 +248,14 @@ Producer.prototype.start = function( ){
 
 	this.emit( producerEvents.startingUp( ) );
 
+	// If we should pause right away ( as in the initial assertQueue came back with
+	// our maxQueueLength or more, we should pause the inputStream before we
+	// go on to add the event listeners.. This will make sure that we don't end up
+	// calling handleIncoming() when we don't want to on startup.
+	if( this._shouldPause ){
+		this.config.inputStream.pause();
+	}
+
 	// At this point we know that we have inputStream ready,
 	// we just need to bind some listeners..
 
@@ -254,6 +274,13 @@ Producer.prototype.start = function( ){
 		self.config.inputStream.on( name, self._listeners[name] );
 	} );
 
+	// This exists because its possible that we got handed a stream
+	// that was already paused; Let's make sure that if we shouldn't
+	// pause given our logic, that we aren't paused.
+	if( !this._shouldPause ){
+		this.config.inputStream.resume();
+	}
+
 	// If we should die when the input stream has ended; Let's 
 	// listen for that event..
 	if( self.config.dieOnEnd ){
@@ -270,8 +297,21 @@ Producer.prototype.handleIncoming = function( eventName, data ){
 
 	if( this._shouldPause && !this.config.inputStream.isPaused() ){
 		this.config.inputStream.pause( );
-	}else if( this.config.inputStream.isPaused() && !this._shouldPause ){
-		this.config.inputStream.resume( );
+	}
+
+	// Note that the counter is a runaway control; If we have a particularly fast
+	// stream we may want to try and not go too far overboard with our limit.
+	// 
+	// Without this control, we could have a very fast stream that dumps messages into
+	// the queue before our loop checking how many messages are in the queue could catch 
+	// that we've gone over.
+
+	// Note that if you want more performance in favour of higher message counts on a queue,
+	// or if you're dealing with a steady stream coming in, this could be disabled.
+
+	this._counter++;
+	if( this._counter == this.config.rabbit.maxQueueLength && this.config.rabbit.maxQueueLength !== 0 ){
+		this._shouldPause = true;
 	}
 
 	this._rabbitChannel.sendToQueue( this.config.rabbit.queueName, new Buffer( data ) );

@@ -27,6 +27,8 @@ rl.pause();
 
 program.version( "0.1.0" )
 	.option( "-q, --queue <queue>", "Queue name to use" )
+	.option( "-P, --producer", "Signal that we're producing" )
+	.option( "-C, --consumer", "Signal that we should consume" )
 	.option( "-l, --queue-length [queuelength]", "Maximum number of items in the queue" )
 	.option( "-f, --queue-freq [queuefreq]", "How often to check the queue length (ms)" )
 	.option( "-H, --host [host]", "Rabbit host to use", "localhost" )
@@ -36,6 +38,15 @@ const bail = function( ){
 	program.outputHelp( );
 	process.exit(1);
 };
+
+if( !program.producer ){
+	bail( );
+}
+
+if( program.consumer ){
+	console.log( "Consumer is not implemented yet." );
+	bail( );
+}
 
 if( !program.queue ){
 	return bail( );

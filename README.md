@@ -1,6 +1,6 @@
-> Note that this is project is currently under active development. It isn't ready to be used by anyone yet.
-
 [![Travis CI](https://travis-ci.org/robertkeizer/rabbit-pipe.svg?branch=master)](https://travis-ci.org/robertkeizer/rabbit-pipe)
+
+> Note that only a producer exists at the moment. A consumer is on the way.
 
 ## Overview
 
@@ -33,5 +33,10 @@ npm install -g rabbit-pipe
 
 **Example**: Put each filename into a rabbit queue named `files`. Try and keep a limit of 1000 messages in the queue at one time, and check the queue length every 100ms.
 ```
-find / -type f | rabbit-pipe -q files -l 1000 -f 100
+$ find / -type f | rabbit-pipe -P -q files -l 1000 -f 100
+```
+
+**Example**: Generate the sha512 hashes of each file on disk and send them to a queue named `hashes`. Limit to 10000 messages in the queue at once, and check the queue length every second.
+```
+$ find / -type f 2>/dev/null | xargs -I{} shasum -a 512 {} 2>/dev/null | awk '{print $1}' | rabbit-pipe -P -q hashes -l 10000 -f 1000
 ```

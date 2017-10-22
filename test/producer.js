@@ -2,10 +2,13 @@ const Main	= require( "../" );
 const assert	= require( "assert" );
 const Tasks	= require( "./tasks" );
 
+const stream	= require( "stream" );
 const events	= require( "events" );
 
 const ProducerEvents	= require( "../src/events" ).Producer;
 const producerEvents	= new ProducerEvents( );
+
+const event2stream	= require( "event2stream" );
 
 describe( "Producer", function( ){
 	it( "Is a function", function( ){
@@ -18,15 +21,23 @@ describe( "Producer", function( ){
 		} );
 	} );
 
-	it( "Doesn't throw an error if config is passed in", function( ){
+	it( "Doesn't throw an error if config is passed in", function( cb ){
 		const tasks = new Tasks( );
-		const p = new Main.Producer( tasks.validSpecProducerConfig( ) );
+		const p = new Main.Producer( tasks.validSpecProducerConfig( { waitForReadyListener: true } ) );
+		p.once( producerEvents.readyToStart( ), function( ){
+			p.die();
+			return cb( null );
+		} );
 	} );
 
-	it( "The Producer inherits from the event emitter", function( ){
+	it( "The Producer inherits from the event emitter", function( cb ){
 		const tasks = new Tasks( );
-		const p = new Main.Producer( tasks.validSpecProducerConfig( ) );
+		const p = new Main.Producer( tasks.validSpecProducerConfig( { waitForReadyListener: true } ) );
 		assert.ok( p instanceof events.EventEmitter );
+		p.once( producerEvents.readyToStart(), function( ){
+			p.die();
+			return cb( null );
+		} );
 	} );
 
 	it( "The producer emits a ready to start event when ready to start", function( cb ){
@@ -61,10 +72,17 @@ describe( "Producer", function( ){
 		// producerEvents.startCalledWhenAlreadyRunning
 		it( "Calling .start fails if its already running", function( cb ){
 			const tasks = new Tasks( );
+			const _ee = new events.EventEmitter( );
+			const myStream = new event2stream( {
+				eventEmitter: _ee,
+				eventNames: [ "data" ]
+			} );
+			_ee.emit( "data", "hey there" );
 			const p = new Main.Producer( tasks.validSpecProducerConfig( {
 				waitForReadyListener: true,
 				autoStart: true,
-				eventNamesToListenTo: [ "line" ]
+				eventNamesToListenTo: [ "line" ],
+				inputStream: myStream
 			} ) );
 			p.once( producerEvents.readyToStart( ), function( ){ } );
 			p.once( producerEvents.running( ), function( ){
@@ -79,15 +97,92 @@ describe( "Producer", function( ){
 
 		it( "Emits a running if we're good to go.", function( cb ){
 			const tasks = new Tasks( );
+			const _ee = new events.EventEmitter( );
+			const myStream = new event2stream( {
+				eventEmitter: _ee,
+				eventNames: [ "data" ]
+			} );
+			_ee.emit( "data", "Some Data" );
 			const p = new Main.Producer( tasks.validSpecProducerConfig( {
 				waitForReadyListener: true,
 				autoStart: true,
-				eventNamesToListenTo: [ "line" ]
+				eventNamesToListenTo: [ "line" ],
+				inputStream: myStream
 			} ) );
 			p.once( producerEvents.readyToStart( ), function( ){ } );
 			p.once( producerEvents.running( ), function( ){
 				p.die();
 				return cb( null );
+			} );
+		} );
+
+		it( "Adds records to the queue as appropriate", function( cb ){
+
+			const _ee = new events.EventEmitter( );
+			const myStream = new event2stream( {
+				eventEmitter: _ee,
+				eventNames: [ "data" ]
+			} );
+
+			for( var k=0; k<1000; k++ ){
+				_ee.emit( "data", "Some Data" );
+			}
+
+			const tasks = new Tasks( );
+			const p = new Main.Producer( tasks.validSpecProducerConfig( {
+				waitForReadyListener: true,
+				autoStart: true,
+				eventNamesToListenTo: [ "data" ],
+				inputStream: myStream,
+				rabbit: {
+					deleteQueueOnDeath: true
+				}
+			} ) );
+			p.once( producerEvents.readyToStart( ), function( ){ } );
+			p.once( producerEvents.handledData( ), function( ){
+				p.die( );
+				return cb( null );
+			} );
+		} );
+
+		it.skip( "Properly limits the rabbit queue.", function( cb ){
+
+			const _ee = new events.EventEmitter( );
+
+			const myStream = new event2stream( {
+				eventEmitter: _ee,
+				eventNames: [ "data" ]
+			} );
+
+			const _add_thousand = function( ){
+				for( var k=0; k<1000; k++ ){
+					_ee.emit( "data", "Some Data" );
+				}
+			};
+
+			_add_thousand( );
+			setTimeout( function( ){
+				_add_thousand( );
+			}, 1000 );
+
+			const tasks = new Tasks( );
+			const p = new Main.Producer( tasks.validSpecProducerConfig( {
+				waitForReadyListener: true,
+				autoStart: true,
+				eventNamesToListenTo: [ "data" ],
+				inputStream: myStream,
+				rabbit: {
+					maxQueueLength: 1000,
+					checkQueueFrequency: 10,
+					deleteQueueOnDeath: true
+				}
+			} ) );
+			p.once( producerEvents.readyToStart( ), function( ){ } );
+			p.once( producerEvents.handledData( ), function( ){
+				setTimeout( function( ){
+					p.die( );
+					return cb( null );
+				}, 4000 );
 			} );
 		} );
 	} );

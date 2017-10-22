@@ -1,3 +1,5 @@
 language: node_js
+services:
+  - rabbitmq
 node_js:
   - "lts/*"

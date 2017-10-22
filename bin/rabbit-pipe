@@ -1,0 +1,97 @@
+#!/usr/bin/env node
+
+const program = require( "commander" );
+const readline = require( "readline" );
+const Main = require( "../" );
+
+const rl = readline.createInterface( { input: process.stdin, terminal: false } );
+
+/*
+	This bullshit is because the readable stream interface contains
+	a function `isPaused`, but the readline library doesn't.
+
+	This replicates the functionality so that the module thinks its dealing
+	with an actual straight up readablestream instance.
+*/
+let _paused = false;
+rl.on( "pause", function( ){ _paused = true; } );
+rl.on( "resume", function( ){ _paused = false; } );
+rl.isPaused = function( ){ return _paused; };
+
+// We don't want to read anything in until we've got a
+// listener in place ready to take the content.
+rl.pause();
+
+
+// Start of the actual program.
+
+program.version( "0.1.0" )
+	.option( "-q, --queue <queue>", "Queue name to use" )
+	.option( "-P, --producer", "Signal that we're producing" )
+	.option( "-C, --consumer", "Signal that we should consume" )
+	.option( "-l, --queue-length [queuelength]", "Maximum number of items in the queue" )
+	.option( "-f, --queue-freq [queuefreq]", "How often to check the queue length (ms)" )
+	.option( "-H, --host [host]", "Rabbit host to use", "localhost" )
+	.parse( process.argv );
+
+const bail = function( ){
+	program.outputHelp( );
+	process.exit(1);
+};
+
+if( !program.producer ){
+	bail( );
+}
+
+if( program.consumer ){
+	console.log( "Consumer is not implemented yet." );
+	bail( );
+}
+
+if( !program.queue ){
+	return bail( );
+}
+
+// If the queue length was specified..
+if( program.queueLength ){
+
+	// Let's get the int value of it.
+	const _newLength = parseInt( program.queueLength );
+
+	// If it is 0 or more ( ie not a negative number or a NaN ).
+	if( _newLength >= 0 ){
+
+		// Set it as the new length
+		program.queueLength = _newLength;
+	}else{
+
+		// Otherwise die because the user is an idiot.
+		bail( );
+	}
+}
+
+const _configToUse = {
+	dieOnEnd: true,
+	inputStream: rl, 
+	waitForReadyListener: false,
+	autoStart: true,
+	eventNamesToListenTo: [ "line" ],
+	rabbit: {
+		host: program.host || "localhost",
+		queueName: program.queue,
+		maxQueueLength: program.queueLength || 0,
+		checkQueueFrequency: program.queueFreq || 0,
+		deleteQueueOnDeath: false
+	}
+};
+
+try{
+	const p = new Main.Producer( _configToUse );
+
+	p.on( "error", function( err ){
+		console.log( err );
+	} );
+
+} catch( err ){
+	console.log( "ERROR: " + err );
+}

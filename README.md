@@ -2,9 +2,7 @@
 
 ## Overview
 
-> Note that only a producer exists at the moment. A consumer is on the way.
-
-Allows interaction between a unix pipe and a rabbit queue. Allows for stream `pause()` and `resume()` functionality based on number of messages in the queue.
+Allows interaction between a unix pipe and a rabbit queue.
 
 ## Installation
 
@@ -21,6 +19,8 @@ npm install -g rabbit-pipe
 
     -V, --version                     output the version number
     -q, --queue <queue>               Queue name to use
+    -P, --producer                    Signal that we're producing
+    -C, --consumer                    Signal that we should consume
     -l, --queue-length [queuelength]  Maximum number of items in the queue
     -f, --queue-freq [queuefreq]      How often to check the queue length (ms)
     -H, --host [host]                 Rabbit host to use

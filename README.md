@@ -1,12 +1,10 @@
 [![Travis CI](https://travis-ci.org/robertkeizer/rabbit-pipe.svg?branch=master)](https://travis-ci.org/robertkeizer/rabbit-pipe)
 
-> Note that only a producer exists at the moment. A consumer is on the way.
-
 ## Overview
 
-A collection of programs that allow you to interact with rabbit pipes on the unix command line. 
+> Note that only a producer exists at the moment. A consumer is on the way.
 
-Also contains a node module to transit data from a [ReadableStream](https://nodejs.org/api/stream.html#stream_readable_streams) into a Rabbit Queue.
+Allows interaction between a unix pipe and a rabbit queue. Allows for stream `pause()` and `resume()` functionality based on number of messages in the queue.
 
 ## Installation
 

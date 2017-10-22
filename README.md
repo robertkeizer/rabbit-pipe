@@ -16,7 +16,6 @@ npm install -g rabbit-pipe
 
 ## Usage
 
-*rabbit-pipe*
 ```
   Usage: rabbit-pipe [options]
 
@@ -32,7 +31,7 @@ npm install -g rabbit-pipe
 
 ## Examples
 
-*Example*: Put each filename into a rabbit queue named `files`.
+**Example**: Put each filename into a rabbit queue named `files`. Try and keep a limit of 1000 messages in the queue at one time, and check the queue length every 100ms.
 ```
 find / -type f | rabbit-pipe -q files -l 1000 -f 100
 ```

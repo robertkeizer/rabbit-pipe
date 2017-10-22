@@ -4,20 +4,39 @@ const program = require( "commander" );
 const readline = require( "readline" );
 const Main = require( "../" );
 
-process.stdin.pause();
-setTimeout( function( ){
-	console.log( "resuming" );
-	process.stdin.resume();
-}, 1000 );
+const rl = readline.createInterface( { input: process.stdin, terminal: false } );
+
+/*
+	This bullshit is because the readable stream interface contains
+	a function `isPaused`, but the readline library doesn't.
+
+	This replicates the functionality so that the module thinks its dealing
+	with an actual straight up readablestream instance.
+*/
+let _paused = false;
+rl.on( "pause", function( ){ _paused = true; } );
+rl.on( "resume", function( ){ _paused = false; } );
+rl.isPaused = function( ){ return _paused; };
+
+// We don't want to read anything in until we've got a
+// listener in place ready to take the content.
+
+rl.pause();
+rl.on( "newListener", function( eventName ){
+	if( eventName == "line" ){
+		rl.resume();
+	}
+} );
 
 program.version( "0.1.0" )
 	.option( "-q, --queue [queue]", "Queue name to use" )
 	.parse( process.argv );
 
+
 try{
 	const p = new Main.Producer( {
 		dieOnEnd: true,
-		inputStream: readline.createInterface( { input: process.stdin, terminal: false } ),
+		inputStream: rl, 
 		waitForReadyListener: false,
 		autoStart: true,
 		eventNamesToListenTo: [ "line" ],

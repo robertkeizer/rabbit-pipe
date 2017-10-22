@@ -133,7 +133,7 @@ Producer.prototype._setupRabbitMQConnection = function( cb ){
 
 	}, function( conn, cb ){
 
-		conn.createChannel( function( err, ch ){
+		conn.createConfirmChannel( function( err, ch ){
 			return cb( err, conn, ch );
 		} );
 
@@ -247,7 +247,6 @@ Producer.prototype.start = function( ){
 			return self.emit.apply( producerEvents.listenerAlreadyDefinedFor(name) );
 		}
 
-		console.log( "Setting up listener for " + name );
 		self._listeners[name] = function( comingIn ){
 			self.handleIncoming( name, comingIn );
 		};
@@ -260,8 +259,7 @@ Producer.prototype.start = function( ){
 	if( self.config.dieOnEnd ){
 
 		self.config.inputStream.once( "close", function( ){
-			console.log( "Caught close" );
-			//self.die();
+			self.die();
 		} );
 	}
 
@@ -270,15 +268,13 @@ Producer.prototype.start = function( ){
 
 Producer.prototype.handleIncoming = function( eventName, data ){
 
-	console.log( "This is handle incoming.." );
-	
 	if( this._shouldPause && !this.config.inputStream.isPaused() ){
 		this.config.inputStream.pause( );
 	}else if( this.config.inputStream.isPaused() && !this._shouldPause ){
 		this.config.inputStream.resume( );
 	}
 
-	this._rabbitChannel.sendToQueue( this.config.rabbit.queueName, data );
+	this._rabbitChannel.sendToQueue( this.config.rabbit.queueName, new Buffer( data ) );
 	this.emit( producerEvents.handledData( ) );
 };
 
@@ -304,7 +300,14 @@ Producer.prototype.die = function( ){
 				return;
 			}
 			return cb( null, null );
+
 		}, function( deleteResponse, cb ){
+
+			self._rabbitChannel.waitForConfirms( function( err ){
+				return cb( null );
+			} );
+
+		}, function( cb ){
 
 			// Close down the connection.
 			self._rabbitConnection.close( function( err ){

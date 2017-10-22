@@ -72,10 +72,17 @@ describe( "Producer", function( ){
 		// producerEvents.startCalledWhenAlreadyRunning
 		it( "Calling .start fails if its already running", function( cb ){
 			const tasks = new Tasks( );
+			const _ee = new events.EventEmitter( );
+			const myStream = new event2stream( {
+				eventEmitter: _ee,
+				eventNames: [ "data" ]
+			} );
+			_ee.emit( "data", "hey there" );
 			const p = new Main.Producer( tasks.validSpecProducerConfig( {
 				waitForReadyListener: true,
 				autoStart: true,
-				eventNamesToListenTo: [ "line" ]
+				eventNamesToListenTo: [ "line" ],
+				inputStream: myStream
 			} ) );
 			p.once( producerEvents.readyToStart( ), function( ){ } );
 			p.once( producerEvents.running( ), function( ){
@@ -90,10 +97,17 @@ describe( "Producer", function( ){
 
 		it( "Emits a running if we're good to go.", function( cb ){
 			const tasks = new Tasks( );
+			const _ee = new events.EventEmitter( );
+			const myStream = new event2stream( {
+				eventEmitter: _ee,
+				eventNames: [ "data" ]
+			} );
+			_ee.emit( "data", "Some Data" );
 			const p = new Main.Producer( tasks.validSpecProducerConfig( {
 				waitForReadyListener: true,
 				autoStart: true,
-				eventNamesToListenTo: [ "line" ]
+				eventNamesToListenTo: [ "line" ],
+				inputStream: myStream
 			} ) );
 			p.once( producerEvents.readyToStart( ), function( ){ } );
 			p.once( producerEvents.running( ), function( ){
@@ -105,7 +119,6 @@ describe( "Producer", function( ){
 		it( "Adds records to the queue as appropriate", function( cb ){
 
 			const _ee = new events.EventEmitter( );
-
 			const myStream = new event2stream( {
 				eventEmitter: _ee,
 				eventNames: [ "data" ]

@@ -32,6 +32,7 @@ const Validations = function( ){
 				).required( ),
 				queueName: "incoming"
 			} ),
+			autoStart: Joi.boolean( ).default( false ),
 			outputStream: Joi.object( ).required( )
 		} ).required( )
 	};

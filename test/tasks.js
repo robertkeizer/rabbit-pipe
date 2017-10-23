@@ -37,7 +37,8 @@ Tasks.prototype.validSpecForConsumer = function( objToMerge ){
 			host: "localhost",
 			queueName: "incoming"
 		},
-		outputStream: outputStream
+		outputStream: outputStream,
+		autoStart: true
 	}, objToMerge );
 };
 

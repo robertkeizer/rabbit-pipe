@@ -93,9 +93,14 @@ Consumer.prototype.start = function( ){
 
 	this.emit( consumerEvents.startingUp( ) );
 
-	
+	this._startConsuming( );
 
 	this.emit( consumerEvents.running( ) );
+};
+
+Consumer.prototype._startConsuming = function( ){
+	
+	//this._rabbitConnection.consume( 
 };
 
 Consumer.prototype.die = function( ){

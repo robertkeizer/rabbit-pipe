@@ -167,12 +167,17 @@ Consumer.prototype.die = function( ){
 
 		// Close down the connection.
 		self._rabbitConnection.close( function( err ){
-			this._rabbitConnection = false;
+
+			if( err ){
+				self.emit( "error", err );
+			}
+
+			self._rabbitConnection = false;
+
+			// We don't want any more listeners on this consumer..
+			self.removeAllListeners( );
 		} );
 	}
-	
-	// Remove all listeners to this instance of the consumer.
-	this.removeAllListeners( );
 };
 
 module.exports = Consumer;

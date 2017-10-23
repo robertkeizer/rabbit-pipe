@@ -78,6 +78,7 @@ describe( "Consumer", function( ){
 		const c = new Main.Consumer( _consumerConfig );
 
 		const die = function( ){
+
 			p.die();
 			c.die();
 			return cb( null );

@@ -87,9 +87,7 @@ describe( "Consumer", function( ){
 		// in our Tasks we have a _write function defined that turns
 		// writes into a 'data' event that we can handle in this fashion.
 		_consumerConfig.outputStream.on( "data", function( data ){
-	
 			assert.equal( data.chunk.toString(), _messageToPass );
-
 			die( );
 		} );
 

@@ -1,3 +1,4 @@
 module.exports = {
-	Producer: require( "./producer" )
+	Producer: require( "./producer" ),
+	Consumer: require( "./consumer" )
 }

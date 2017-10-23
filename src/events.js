@@ -44,6 +44,31 @@ ProducerEvents.prototype.noreplyOnCheckQueue = function( reply ){
 	return _return;
 };
 
+const ConsumerEvents = function( ){
+	
+};
+
+ConsumerEvents.prototype.startCalledWhenAlreadyRunning = function( ){
+	return [ "error", "Start called when already running." ];
+};
+
+ConsumerEvents.prototype.readyToStart = function( ){
+	return "readyToStart";
+};
+
+ConsumerEvents.prototype.startingUp = function( ){
+	return "startingUp";
+};
+
+ConsumerEvents.prototype.running = function( ){
+	return "running";
+};
+
+ConsumerEvents.prototype.dying = function( ){
+	return "dying";
+};
+
 module.exports = {
-	Producer: ProducerEvents
+	Producer: ProducerEvents,
+	Consumer: ConsumerEvents
 }

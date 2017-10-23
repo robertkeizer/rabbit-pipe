@@ -351,13 +351,16 @@ Producer.prototype.die = function( ){
 
 			// Close down the connection.
 			self._rabbitConnection.close( function( err ){
-				this._rabbitConnection = false;
+				self._rabbitConnection = false;
 				return cb( null );
 			} );
 		} ], function( err ){
 			// The only error that is possible right here is
 			// delete queue.. we don't care at this point.
 			// This should be addressed in a future version.
+			if( err ){
+				self.emit( "error", err );
+			}
 		} );
 	}
 

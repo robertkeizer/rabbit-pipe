@@ -27,4 +27,25 @@ Tasks.prototype.validSpecProducerConfig = function( objToMerge ){
 	}, objToMerge );
 };
 
+Tasks.prototype.validSpecForConsumer = function( objToMerge ){
+	if( !objToMerge ){ objToMerge = { }; }
+
+	const outputStream = new stream.Writable( );
+
+	outputStream._write = function( chunk, encoding, cb ){
+		this.emit( "data", { chunk: chunk, encoding: encoding } );
+		cb();
+	};
+
+	return merge.recursive( {
+		rabbit: {
+			host: "localhost",
+			queueName: "incoming-" + uuid.v4(),
+			ack: false
+		},
+		outputStream: outputStream,
+		autoStart: true,
+	}, objToMerge );
+};
+
 module.exports = Tasks;

@@ -2,7 +2,7 @@
 
 ## Overview
 
-Allows interaction between a unix pipe and a rabbit queue. Useful for parallization across hosts. Originally designed to handle the output from `masscan 0.0.0.0/0 -sL`.
+Allows interaction between a unix pipe and a rabbit queue. Useful for parallization across hosts.
 
 ## Installation
 

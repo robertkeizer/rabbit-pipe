@@ -39,6 +39,7 @@ describe( "Consumer", function( ){
 		const tasks = new Tasks( );
 		const consumer = new Main.Consumer( tasks.validSpecForConsumer( ) );
 		consumer.on( consumerEvents.running( ), function( ){
+			consumer.die();
 			return cb( null );
 		} );
 	} );

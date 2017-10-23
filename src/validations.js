@@ -31,7 +31,10 @@ const Validations = function( ){
 					Joi.string( ).hostname( )
 				).required( ),
 				queueName: Joi.string( ).default( "incoming" ),
-				ack: Joi.boolean( ).default( false )
+				ack: Joi.boolean( ).default( false ),
+				queueOptions: Joi.object( ).keys( {
+					durable: Joi.boolean( )
+				} ).default( { durable: true } )
 			} ),
 			autoStart: Joi.boolean( ).default( false ),
 			outputStream: Joi.object( ).required( ),

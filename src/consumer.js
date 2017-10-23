@@ -24,7 +24,7 @@ const Consumer = function( config ){
 		Joi.validate( config, validations.consumerConfig, cb );
 
 	}, function( newConfig, cb ){
-	
+
 		// Note that we use newConfig because we might have some defaults defined.
 		self.config = newConfig;
 		return cb( null );

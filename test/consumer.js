@@ -14,7 +14,7 @@ describe( "Consumer", function( ){
 		} );
 	} );
 
-	it( "Emits an error if could connect to the rabbit instance", function( ){
+	it( "Emits an error if could connect to the rabbit instance", function( cb ){
 		const tasks = new Tasks( );
 		const consumer = new Main.Consumer( tasks.validSpecForConsumer( {
 			rabbit: {

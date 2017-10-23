@@ -13,9 +13,6 @@ const async		= require( "async" );
 
 const Consumer = function( config ){
 
-	console.log( "I have config of ");
-	console.log( config );
-	
 	const self = this;
 	async.waterfall( [ function( cb ){
 

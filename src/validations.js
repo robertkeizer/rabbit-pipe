@@ -28,15 +28,11 @@ const Validations = function( ){
 		consumerConfig: Joi.object( ).keys( {
 			rabbit: Joi.object( ).keys( {
 				host: Joi.alternatives( ).try(
-					Joi.string( ).hostname()
+					Joi.string( ).hostname( )
 				).required( ),
-				queueName: Joi.string( ).required( ),
-				queueOptions: Joi.object( ).keys( {
-					durable: Joi.boolean( )
-				} ).default( { durable: false } )
-			} ).required( ),
-			outputStream: Joi.object( ).required( ),
-			autoStart: Joi.boolean( ).default( false )
+				queueName: "incoming"
+			} ),
+			outputStream: Joi.object( ).required( )
 		} ).required( )
 	};
 };

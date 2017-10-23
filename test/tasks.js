@@ -27,4 +27,18 @@ Tasks.prototype.validSpecProducerConfig = function( objToMerge ){
 	}, objToMerge );
 };
 
+Tasks.prototype.validSpecForConsumer = function( objToMerge ){
+	if( !objToMerge ){ objToMerge = { }; }
+
+	const outputStream = new stream.Writable( );
+
+	return merge.recursive( {
+		rabbit: {
+			host: "localhost",
+			queueName: "incoming"
+		},
+		outputStream: outputStream
+	}, objToMerge );
+};
+
 module.exports = Tasks;

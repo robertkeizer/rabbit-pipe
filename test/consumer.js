@@ -75,16 +75,29 @@ describe( "Consumer", function( ){
 			}
 		} );
 
-		const c = new Main.Consumer( _consumerConfig );
+		// Just a simple function to start the consumer..
+		const letsGo = function( ){
+			c = new Main.Consumer( _consumerConfig );
+		};
+
+		_consumerConfig.outputStream.on( "newListener", function( eventName ){
+			if( eventName == "data" ){
+				letsGo( );
+			}
+		} );
+
+		// Yes this is hacky, I should go back and 
+		// work on this test at some point. 'c' represents
+		// the consumer instance, and is set in letsGo() below.
+		let c = undefined;
 
 		const die = function( ){
-
 			p.die();
 			c.die();
 			return cb( null );
 		};
 
-		// Note that we're hacking the output stream a bit in taht
+		// Note that we're hacking the output stream a bit in that
 		// in our Tasks we have a _write function defined that turns
 		// writes into a 'data' event that we can handle in this fashion.
 		_consumerConfig.outputStream.on( "data", function( data ){
@@ -92,6 +105,8 @@ describe( "Consumer", function( ){
 			die( );
 		} );
 
+		// Shove stuff into the rabbit queue as soon as we're
+		// ready to go.
 		p.once( producerEvents.readyToStart( ), function( ){
 			_ee.emit( "data", _messageToPass );
 		} );

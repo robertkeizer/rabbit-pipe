@@ -15,6 +15,9 @@ const os		= require( "os" );
 
 const Consumer = function( config ){
 
+	this._cancelling = false;
+	this._consumerTag = false;
+
 	const self = this;
 	async.waterfall( [ function( cb ){
 
@@ -119,7 +122,23 @@ Consumer.prototype.handleIncoming = function( msg ){
 	// If false, the output stream has hit its high water mark and we should
 	// wait for the .drain() event on it..
 
-	
+	const self = this;
+	if( !_return && !self._cancelling ){
+
+		self._cancelling = true;
+
+		// We should cancel the current consumer, watch for the drain event
+		// and start consuming again when that happens.
+		self._rabbitChannel.cancel( self._consumerTag, function( err ){
+			if( err ){ self.emit( "error", err ); }
+		} );
+
+		self.config.outputStream.once( "drain", function( ){
+			// Let's start consuming again.
+			self._cancelling = false;
+			self._startConsuming( );
+		} );
+	}
 };
 
 Consumer.prototype._startConsuming = function( ){
@@ -129,8 +148,13 @@ Consumer.prototype._startConsuming = function( ){
 		self.handleIncoming( msg );
 	}, {
 		noAck: !self.config.rabbit.ack
-	}, function( err ){
+	}, function( err, ok ){
 		if( err ){ self.emit( "error", err ); }
+
+		// We want to know the consumer tag so that we
+		// can cancel the consumer if our output stream gets
+		// clogged up.
+		self._consumerTag = ok.consumerTag;
 	} );
 };
 

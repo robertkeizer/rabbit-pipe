@@ -115,7 +115,9 @@ if( program.consumer ){
 			ack: false
 		},
 		outputStream: process.stdout,
-		autoStart: true
+		autoStart: true,
+		encoding: "utf8",
+		addNewline: true
 	};
 
 	try{

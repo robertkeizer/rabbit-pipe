@@ -11,6 +11,8 @@ const consumerEvents	= new ConsumerEvents( );
 const amqplib		= require( "amqplib/callback_api" );
 const async		= require( "async" );
 
+const os		= require( "os" );
+
 const Consumer = function( config ){
 
 	const self = this;
@@ -103,9 +105,13 @@ Consumer.prototype.start = function( ){
 Consumer.prototype.handleIncoming = function( msg ){
 
 	let _return = undefined;
-	if( this.config.encoding ){
+	if( this.config.encoding && this.config.addNewline ){
+		_return = this.config.outputStream.write( msg.content + os.EOL, this.config.encoding )
+	}else if( this.config.encoding && !this.config.addNewline ){
+		// Odd, but perhaps there is a reason..
 		_return = this.config.outputStream.write( msg.content, this.config.encoding )
 	}else{
+		// no encoding, just write the damn thing out.
 		_return = this.config.outputStream.write( msg.content );
 	}
 

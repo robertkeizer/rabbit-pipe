@@ -34,7 +34,12 @@ const Validations = function( ){
 				ack: Joi.boolean( ).default( false )
 			} ),
 			autoStart: Joi.boolean( ).default( false ),
-			outputStream: Joi.object( ).required( )
+			outputStream: Joi.object( ).required( ),
+			encoding: Joi.alternatives( ).try(
+				Joi.string( ).valid( "utf8" ),
+				Joi.boolean( )
+			).default( false ),
+			addNewline: Joi.boolean( ).default( false )
 		} ).required( )
 	};
 };

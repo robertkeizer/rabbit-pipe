@@ -32,13 +32,19 @@ Tasks.prototype.validSpecForConsumer = function( objToMerge ){
 
 	const outputStream = new stream.Writable( );
 
+	outputStream._write = function( chunk, encoding, cb ){
+		this.emit( "data", { chunk: chunk, encoding: encoding } );
+		cb();
+	};
+
 	return merge.recursive( {
 		rabbit: {
 			host: "localhost",
-			queueName: "incoming"
+			queueName: "incoming-" + uuid.v4(),
+			ack: false
 		},
 		outputStream: outputStream,
-		autoStart: true
+		autoStart: true,
 	}, objToMerge );
 };
 

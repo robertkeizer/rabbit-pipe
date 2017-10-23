@@ -19,7 +19,7 @@ const Validations = function( ){
 				queueName: Joi.string( ).required( ),
 				queueOptions: Joi.object( ).keys( {
 					durable: Joi.boolean( )
-				} ).default( { durable: false } ),
+				} ).default( { durable: true } ),
 				maxQueueLength: Joi.number( ).integer( ),
 				checkQueueFrequency: Joi.number( ).integer( ).default( 2500 ),
 				deleteQueueOnDeath: Joi.boolean( ).default( false )
@@ -30,7 +30,8 @@ const Validations = function( ){
 				host: Joi.alternatives( ).try(
 					Joi.string( ).hostname( )
 				).required( ),
-				queueName: "incoming"
+				queueName: Joi.string( ).default( "incoming" ),
+				ack: Joi.boolean( ).default( false )
 			} ),
 			autoStart: Joi.boolean( ).default( false ),
 			outputStream: Joi.object( ).required( )

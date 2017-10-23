@@ -39,20 +39,16 @@ const bail = function( ){
 	process.exit(1);
 };
 
-if( !program.producer ){
-	bail( );
-}
+// Either producer or consumer needs to be specified.
+if( !program.producer && !program.consumer ){ bail( ); }
 
-if( program.consumer ){
-	console.log( "Consumer is not implemented yet." );
-	bail( );
-}
+// Both producer and consumer take a queue as a mandatory 
+// option.
+if( !program.queue ){ return bail( ); }
 
-if( !program.queue ){
-	return bail( );
-}
-
-// If the queue length was specified..
+// If the queue length was specified, let's go ahead
+// and parse it so that its a number not a string.
+// Also sanity check it, and bail if it isn't valid.
 if( program.queueLength ){
 
 	// Let's get the int value of it.
@@ -70,28 +66,66 @@ if( program.queueLength ){
 	}
 }
 
-const _configToUse = {
-	dieOnEnd: true,
-	inputStream: rl, 
-	waitForReadyListener: false,
-	autoStart: true,
-	eventNamesToListenTo: [ "line" ],
-	rabbit: {
-		host: program.host || "localhost",
-		queueName: program.queue,
-		maxQueueLength: program.queueLength || 0,
-		checkQueueFrequency: program.queueFreq || 0,
-		deleteQueueOnDeath: false
+if( program.producer ){
+
+	// We're a producer; Let's generate the config
+	// for our producer module.
+
+	const _configToUse = {
+		dieOnEnd: true,
+		inputStream: rl, 
+		waitForReadyListener: false,
+		autoStart: true,
+		eventNamesToListenTo: [ "line" ],
+		rabbit: {
+			host: program.host || "localhost",
+			queueName: program.queue,
+			maxQueueLength: program.queueLength || 0,
+			checkQueueFrequency: program.queueFreq || 0,
+			deleteQueueOnDeath: false
+		}
+	};
+
+	// Shouldn't error as we're listening on the error event,
+	// but if for some reason it does we shouldn't die a horrible
+	// death.
+	try{
+		const p = new Main.Producer( _configToUse );
+
+		p.on( "error", function( err ){
+			console.error( err );
+		} );
+
+	} catch( err ){
+		console.error( err );
 	}
-};
 
-try{
-	const p = new Main.Producer( _configToUse );
+	return;
+}
 
-	p.on( "error", function( err ){
-		console.log( err );
-	} );
+if( program.consumer ){
 
-} catch( err ){
-	console.log( "ERROR: " + err );
+	// We're consuming; Let's go ahead and create the config
+	// that we'll use for the consumer instance.
+
+	const _configToUse = {
+		rabbit: {
+			host: program.host || "localhost" ,
+			queueName: program.queue,
+			ack: false
+		},
+		outputStream: process.stdout,
+		autoStart: true
+	};
+
+	try{
+		const c = new Main.Consumer( _configToUse );
+		c.on( "error", function( err ){
+			console.error( err );
+		} );
+
+	}catch( err ){
+		console.error( err );
+	}
+	return;
 }

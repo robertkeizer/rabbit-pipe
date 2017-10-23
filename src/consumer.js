@@ -65,6 +65,8 @@ Consumer.prototype._setupRabbitMQConnection = function( cb ){
 
 	}, function( conn, ch, cb ){
 
+		// This ensures that the queue exists and we shouldn't
+		// continue without it.
 		ch.assertQueue( self.config.rabbit.queueName, self.config.rabbit.queueOptions, function( err, ok ){
 			return cb( err, conn, ch );
 		} );
@@ -98,9 +100,32 @@ Consumer.prototype.start = function( ){
 	this.emit( consumerEvents.running( ) );
 };
 
-Consumer.prototype._startConsuming = function( ){
+Consumer.prototype.handleIncoming = function( msg ){
+
+	let _return = undefined;
+	if( this.config.encoding ){
+		_return = this.config.outputStream.write( msg.content, this.config.encoding )
+	}else{
+		_return = this.config.outputStream.write( msg.content );
+	}
+
+	// _return is either true or false; If true we should continue.
+	// If false, the output stream has hit its high water mark and we should
+	// wait for the .drain() event on it..
+
 	
-	//this._rabbitConnection.consume( 
+};
+
+Consumer.prototype._startConsuming = function( ){
+
+	const self = this;
+	this._rabbitChannel.consume( self.config.rabbit.queueName, function( msg ){
+		self.handleIncoming( msg );
+	}, {
+		noAck: !self.config.rabbit.ack
+	}, function( err ){
+		if( err ){ self.emit( "error", err ); }
+	} );
 };
 
 Consumer.prototype.die = function( ){

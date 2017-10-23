@@ -146,6 +146,8 @@ Producer.prototype._setupRabbitMQConnection = function( cb ){
 
 		ch.assertQueue( self.config.rabbit.queueName, self.config.rabbit.queueOptions, function( err, ok ){
 
+			if( err ){ return cb( err ); }
+
 			if( ok.messageCount >= self.config.rabbit.maxQueueLength && self.config.rabbit.maxQueueLength !== 0 ){
 				self._shouldPause = true;
 			}

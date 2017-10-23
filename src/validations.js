@@ -24,6 +24,19 @@ const Validations = function( ){
 				checkQueueFrequency: Joi.number( ).integer( ).default( 2500 ),
 				deleteQueueOnDeath: Joi.boolean( ).default( false )
 			} ).required( )
+		} ).required( ),
+		consumerConfig: Joi.object( ).keys( {
+			rabbit: Joi.object( ).keys( {
+				host: Joi.alternatives( ).try(
+					Joi.string( ).hostname()
+				).required( ),
+				queueName: Joi.string( ).required( ),
+				queueOptions: Joi.object( ).keys( {
+					durable: Joi.boolean( )
+				} ).default( { durable: false } )
+			} ).required( ),
+			outputStream: Joi.object( ).required( ),
+			autoStart: Joi.boolean( ).default( false )
 		} ).required( )
 	};
 };

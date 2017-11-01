@@ -1,6 +1,6 @@
 {
 	"name": "rabbit-pipe",
-	"version": "0.2.2",
+	"version": "0.2.3",
 	"description": "Collection of programs and scripts to interact with RabbitMQ through pipes.",
 	"keywords": "rabbit rabbitmq pipe stream queue unix linux command-line cli",
 	"main": "src/main.js",
@@ -18,6 +18,7 @@
 	"dependencies": {
 		"amqplib": "^0.5.1",
 		"async": "^2.5.0",
+		"commander": "^2.11.0",
 		"joi": "^13.0.0"
 	},
 	"devDependencies": {

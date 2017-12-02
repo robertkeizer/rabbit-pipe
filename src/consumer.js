@@ -60,7 +60,7 @@ Consumer.prototype._setupRabbitMQConnection = function( cb ){
 
 	async.waterfall( [ function( cb ){
 
-		amqplib.connect( "amqp://" + self.config.rabbit.host, cb );
+		amqplib.connect( "amqp://" + self.config.rabbit.user + ":" + self.config.rabbit.pass + "@" + self.config.rabbit.host, cb );
 
 	}, function( conn, cb ){
 

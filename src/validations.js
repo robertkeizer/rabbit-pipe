@@ -15,6 +15,8 @@ const Validations = function( ){
 				host: Joi.alternatives( ).try(
 					Joi.string( ).hostname()
 				).required( ),
+				user: Joi.string( ).default( "guest" ),
+				pass: Joi.string( ).default( "guest" ),
 				port: Joi.number( ).integer( ).min( 1 ).max( 65534 ),
 				queueName: Joi.string( ).required( ),
 				queueOptions: Joi.object( ).keys( {
@@ -30,6 +32,8 @@ const Validations = function( ){
 				host: Joi.alternatives( ).try(
 					Joi.string( ).hostname( )
 				).required( ),
+				user: Joi.string( ).default( "guest" ),
+				pass: Joi.string( ).default( "guest" ),
 				queueName: Joi.string( ).default( "incoming" ),
 				ack: Joi.boolean( ).default( false ),
 				queueOptions: Joi.object( ).keys( {

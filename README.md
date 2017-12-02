@@ -24,6 +24,8 @@ npm install -g rabbit-pipe
     -l, --queue-length [queuelength]  Maximum number of items in the queue
     -f, --queue-freq [queuefreq]      How often to check the queue length (ms)
     -H, --host [host]                 Rabbit host to use
+    -u, --user [user]                 User to use for connecting to RabbitMQ
+    -p, --pass [pass]                 Pass to use for connecting to RabbitMQ
     -h, --help                        output usage information
 ```
 
@@ -44,6 +46,11 @@ $ find / -type f | rabbit-pipe -P -q files -l 1000 -f 100
 **Example**: Generate the sha512 hashes of each file on disk and send them to a queue named `hashes`. Limit to 10000 messages in the queue at once, and check the queue length every second.
 ```
 $ find / -type f 2>/dev/null | xargs -I{} shasum -a 512 {} 2>/dev/null | awk '{print $1}' | rabbit-pipe -P -q hashes -l 10000 -f 1000
+```
+
+**Example**: Watch a file ( syslog ) and send each line to a queue named `syslog`. Limit to 1000 messages in the queue, confirm the length of the queue once each second, and login to the RabbitMQ host with the credentials `someuser` and `somepass`.
+```
+$ tail -f /var/log/syslog | rabbit-pipe -P -q syslog -l 1000 -f 1000 -u someuser -p somepass
 ```
 
 ### Consumer

@@ -8,7 +8,7 @@ const rl = readline.createInterface( { input: process.stdin, terminal: false } )
 
 /*
 	This bullshit is because the readable stream interface contains
-	a function `isPaused`, but the readline library doesn't.
+	a function `isPaused`, but the nodejs builtin 'readline' library doesn't.
 
 	This replicates the functionality so that the module thinks its dealing
 	with an actual straight up readablestream instance.
@@ -32,6 +32,8 @@ program.version( "0.1.0" )
 	.option( "-l, --queue-length [queuelength]", "Maximum number of items in the queue" )
 	.option( "-f, --queue-freq [queuefreq]", "How often to check the queue length (ms)" )
 	.option( "-H, --host [host]", "Rabbit host to use", "localhost" )
+	.option( "-u, --user [user]", "User to use for connecting to RabbitMQ" )
+	.option( "-p, --pass [pass]", "Pass to use for connecting to RabbitMQ" )
 	.parse( process.argv );
 
 const bail = function( ){
@@ -79,6 +81,8 @@ if( program.producer ){
 		eventNamesToListenTo: [ "line" ],
 		rabbit: {
 			host: program.host || "localhost",
+			user: program.user,
+			pass: program.pass,
 			queueName: program.queue,
 			maxQueueLength: program.queueLength || 0,
 			checkQueueFrequency: program.queueFreq || 0,
@@ -111,6 +115,8 @@ if( program.consumer ){
 	const _configToUse = {
 		rabbit: {
 			host: program.host || "localhost" ,
+			user: program.user,
+			pass: program.pass,
 			queueName: program.queue,
 			ack: false
 		},

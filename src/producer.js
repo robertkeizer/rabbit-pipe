@@ -134,7 +134,9 @@ Producer.prototype._setupRabbitMQConnection = function( cb ){
 
 	async.waterfall( [ function( cb ){
 
-		amqplib.connect( "amqp://" + self.config.rabbit.host, cb );
+		// Note that user and pass are required to exist, but default
+		// to guest:guest, default for rabbit.
+		amqplib.connect( "amqp://" + self.config.rabbit.user + ":" + self.config.rabbit.pass + "@" + self.config.rabbit.host, cb );
 
 	}, function( conn, cb ){
 

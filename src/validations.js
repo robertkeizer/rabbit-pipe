@@ -32,6 +32,7 @@ const Validations = function( ){
 				host: Joi.alternatives( ).try(
 					Joi.string( ).hostname( )
 				).required( ),
+				prefetch: Joi.number( ).integer( ).min( 1 ).max( 2000 ).default( 1 ),
 				user: Joi.string( ).default( "guest" ),
 				pass: Joi.string( ).default( "guest" ),
 				queueName: Joi.string( ).default( "incoming" ),

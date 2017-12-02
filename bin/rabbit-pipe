@@ -34,6 +34,7 @@ program.version( "0.1.0" )
 	.option( "-H, --host [host]", "Rabbit host to use", "localhost" )
 	.option( "-u, --user [user]", "User to use for connecting to RabbitMQ" )
 	.option( "-p, --pass [pass]", "Pass to use for connecting to RabbitMQ" )
+	.option( "-n, --num [num]", "Number of messages to grab concurrently ( prefetch in rabbit parlance )" )
 	.parse( process.argv );
 
 const bail = function( ){
@@ -117,6 +118,7 @@ if( program.consumer ){
 			host: program.host || "localhost" ,
 			user: program.user,
 			pass: program.pass,
+			prefetch: program.num,
 			queueName: program.queue,
 			ack: false
 		},

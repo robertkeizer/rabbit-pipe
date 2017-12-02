@@ -76,6 +76,14 @@ Consumer.prototype._setupRabbitMQConnection = function( cb ){
 			return cb( err, conn, ch );
 		} );
 
+	}, function( conn, ch, cb ){
+		
+		// Set the prefetch; This may be an effective noop given that
+		// the default is 1.
+		ch.prefetch( self.config.rabbit.prefetch );
+
+		return cb( null, conn, ch );
+
 	} ], function( err, conn, ch ){
 
 		if( err ){

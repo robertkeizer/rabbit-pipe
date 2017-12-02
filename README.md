@@ -23,9 +23,10 @@ npm install -g rabbit-pipe
     -C, --consumer                    Signal that we should consume
     -l, --queue-length [queuelength]  Maximum number of items in the queue
     -f, --queue-freq [queuefreq]      How often to check the queue length (ms)
-    -H, --host [host]                 Rabbit host to use
+    -H, --host [host]                 Rabbit host to use (default: localhost)
     -u, --user [user]                 User to use for connecting to RabbitMQ
     -p, --pass [pass]                 Pass to use for connecting to RabbitMQ
+    -n, --num [num]                   Number of messages to grab concurrently ( prefetch in rabbit parlance )
     -h, --help                        output usage information
 ```
 
@@ -67,4 +68,9 @@ $ rabbit-pipe -C -q music | xargs -I{} mplayer {}
 **Example**: Read log lines from a log queue, append them to a file.
 ```
 $ rabbit-pipe -C -q logs >> ./log-from-rabbit.log
+```
+
+**Example**: Read bad words from a queue and see if they exist in git commit history. Grab 100 words at a time.
+```
+$ rabbit-pipe -C -q badwords -n 100 | xargs -I{} git log --grep {}
 ```

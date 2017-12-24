@@ -20,11 +20,12 @@ const Validations = function( ){
 				port: Joi.number( ).integer( ).min( 1 ).max( 65534 ),
 				queueName: Joi.string( ).required( ),
 				queueOptions: Joi.object( ).keys( {
-					durable: Joi.boolean( )
+					durable: Joi.boolean( ),
+					autoDelete: Joi.boolean( ).default( false ),
 				} ).default( { durable: true } ),
 				maxQueueLength: Joi.number( ).integer( ),
 				checkQueueFrequency: Joi.number( ).integer( ).default( 2500 ),
-				deleteQueueOnDeath: Joi.boolean( ).default( false )
+				deleteQueueOnDeath: Joi.boolean( ).default( false ),
 			} ).required( )
 		} ).required( ),
 		consumerConfig: Joi.object( ).keys( {

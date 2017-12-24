@@ -35,6 +35,7 @@ program.version( "0.2.5" )
 	.option( "-u, --user [user]", "User to use for connecting to RabbitMQ" )
 	.option( "-p, --pass [pass]", "Pass to use for connecting to RabbitMQ" )
 	.option( "-n, --num [num]", "Number of messages to grab concurrently ( prefetch in rabbit parlance )" )
+	.option( "-ad, --autodelete", "Auto delete the queue ( producer mode )",
 	.parse( process.argv );
 
 const bail = function( ){
@@ -88,6 +89,9 @@ if( program.producer ){
 			maxQueueLength: program.queueLength || 0,
 			checkQueueFrequency: program.queueFreq || 0,
 			deleteQueueOnDeath: false
+			queueOptions: {
+				autoDelete: program.autodelete ? true : false,
+			}
 		}
 	};
 
